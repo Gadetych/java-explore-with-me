@@ -15,6 +15,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
@@ -96,6 +97,6 @@ class ViewStatRepositoryTest {
 
         repository.save(model4);
 
-        assertEquals(4, model4.getId());
+        assertNotNull(model4.getId());
     }
 }

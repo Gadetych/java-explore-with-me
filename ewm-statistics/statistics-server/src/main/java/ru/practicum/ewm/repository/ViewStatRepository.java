@@ -13,14 +13,14 @@ public interface ViewStatRepository extends JpaRepository<EndpointHit, Long> {
 
     @Query("select new ru.practicum.ewm.model.ViewStats(e.app, e.uri, count(e.ip)) " +
             "from EndpointHit e " +
-            "where e.uri in (:uris) and e.timestamp between :start and :end " +
+            "where (:uris is null or e.uri in (:uris)) and e.timestamp between :start and :end " +
             "group by e.uri " +
             "order by count(e.ip) desc")
     List<ViewStats> findViewStatsByUri(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end, @Param("uris") List<String> uris);
 
     @Query("select new ru.practicum.ewm.model.ViewStats(e.app, e.uri, count(distinct e.ip)) " +
             "from EndpointHit e " +
-            "where e.uri in (:uris) and e.timestamp between :start and :end " +
+            "where (:uris is null or e.uri in (:uris)) and e.timestamp between :start and :end " +
             "group by e.uri " +
             "order by count(e.ip) desc ")
     List<ViewStats> findViewStatsByUriForUniqueIP(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end, @Param("uris") List<String> uris);
