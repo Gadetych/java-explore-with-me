@@ -1,23 +1,20 @@
 server:
   port: 9090
+
 spring:
-  config:
-    activate:
-      on-profile: test
+  profiles:
+    active: def
   jpa:
+    show-sql: true
     hibernate:
-      ddl-auto: none
-  #    properties:
-  #      hibernate:
-  #        format_sql: true
+      ddl-auto: create
+    properties:
+      hibernate:
+        format_sql: true
   sql:
     init:
       mode: always
-  datasource:
-    driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:6542/server
-    username: dbuser
-    password: password
+
 
 logging:
   level:
@@ -30,9 +27,9 @@ logging:
         transaction:
           interceptor: TRACE
           JpaTransactionManager: DEBUG
-
+      # альтернативный вариант для отображения SQL-запросов
       hibernate:
-        SQL: DEBUG
+        #        SQL: DEBUG
         type:
           descriptor:
             sql:

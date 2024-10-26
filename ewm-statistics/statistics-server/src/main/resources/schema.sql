@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS hits
+CREATE TABLE IF NOT EXISTS view_statistics
 (
     id        BIGINT GENERATED ALWAYS AS IDENTITY NOT NULL,
     app       varchar(512)                        NOT NULL,
