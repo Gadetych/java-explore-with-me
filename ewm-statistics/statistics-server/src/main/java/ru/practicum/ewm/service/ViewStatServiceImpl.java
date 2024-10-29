@@ -4,11 +4,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.ewm.dto.EndpointHitRequestDto;
-import ru.practicum.ewm.dto.ViewStatsResponseDto;
 import ru.practicum.ewm.mapper.ViewStatMapper;
 import ru.practicum.ewm.model.ViewStats;
 import ru.practicum.ewm.repository.ViewStatRepository;
+import ru.practicum.ewm.stats.common.dto.EndpointHitRequestDto;
+import ru.practicum.ewm.stats.common.dto.ViewStatsResponseDto;
 
 import java.time.LocalDateTime;
 import java.util.List;

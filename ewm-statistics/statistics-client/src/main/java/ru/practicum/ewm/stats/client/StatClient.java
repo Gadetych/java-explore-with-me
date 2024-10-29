@@ -1,4 +1,4 @@
-package ru.practicum.ewm.client;
+package ru.practicum.ewm.stats.client;
 
 import io.netty.channel.ChannelOption;
 import io.netty.handler.timeout.ReadTimeoutHandler;
@@ -12,8 +12,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
-import ru.practicum.ewm.dto.EndpointHitRequestDto;
-import ru.practicum.ewm.dto.ViewStatsResponseDto;
+import ru.practicum.ewm.stats.common.dto.EndpointHitRequestDto;
+import ru.practicum.ewm.stats.common.dto.ViewStatsResponseDto;
 
 import java.time.Duration;
 import java.time.LocalDateTime;

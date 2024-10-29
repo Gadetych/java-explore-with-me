@@ -1,19 +1,17 @@
-package ru.practicum.ewm.client;
+package ru.practicum.ewm.stats.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.http.HttpStatus;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.client.WebClientException;
-import ru.practicum.ewm.dto.EndpointHitRequestDto;
-import ru.practicum.ewm.dto.ViewStatsResponseDto;
+import ru.practicum.ewm.stats.common.dto.EndpointHitRequestDto;
+import ru.practicum.ewm.stats.common.dto.ViewStatsResponseDto;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -32,7 +30,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWireMock(port = 0)
 class StatClientTest {

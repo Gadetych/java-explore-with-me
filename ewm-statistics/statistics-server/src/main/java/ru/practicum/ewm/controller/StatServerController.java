@@ -14,9 +14,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import ru.practicum.ewm.dto.EndpointHitRequestDto;
-import ru.practicum.ewm.dto.ViewStatsResponseDto;
 import ru.practicum.ewm.service.ViewStatService;
+import ru.practicum.ewm.stats.common.dto.EndpointHitRequestDto;
+import ru.practicum.ewm.stats.common.dto.ViewStatsResponseDto;
 
 import java.time.LocalDateTime;
 import java.util.List;

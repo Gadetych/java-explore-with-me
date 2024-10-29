@@ -1,10 +1,10 @@
 package ru.practicum.ewm.mapper;
 
 import lombok.experimental.UtilityClass;
-import ru.practicum.ewm.dto.EndpointHitRequestDto;
-import ru.practicum.ewm.dto.ViewStatsResponseDto;
 import ru.practicum.ewm.model.EndpointHit;
 import ru.practicum.ewm.model.ViewStats;
+import ru.practicum.ewm.stats.common.dto.EndpointHitRequestDto;
+import ru.practicum.ewm.stats.common.dto.ViewStatsResponseDto;
 
 @UtilityClass
 public class ViewStatMapper {

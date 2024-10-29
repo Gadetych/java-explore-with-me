@@ -6,7 +6,7 @@ import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import ru.practicum.ewm.dto.EndpointHitRequestDto;
+import ru.practicum.ewm.stats.common.dto.EndpointHitRequestDto;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
