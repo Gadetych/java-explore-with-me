@@ -26,7 +26,7 @@ public class StatServerHandler {
         log.info("400 {}", e.getMessage(), e);
         e.printStackTrace(pw);
         ApiError apiError = new ApiError();
-        apiError.setErrors(List.of(sw.toString()));
+        apiError.setErrors(List.of(e.getMessage()));
         apiError.setMessage(e.getMessage());
         apiError.setStatus(HttpStatus.BAD_REQUEST.toString());
         apiError.setReason("Bad request");
@@ -40,7 +40,7 @@ public class StatServerHandler {
         log.info("500 {}", e.getMessage(), e);
         e.printStackTrace(pw);
         ApiError apiError = new ApiError();
-        apiError.setErrors(List.of(sw.toString()));
+        apiError.setErrors(List.of(e.getMessage()));
         apiError.setMessage(e.getMessage());
         apiError.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.toString());
         apiError.setReason("Internal Server Error");
