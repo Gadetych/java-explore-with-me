@@ -41,7 +41,7 @@ class StatClientTest {
     @BeforeEach
     void setUp() {
         String baseUrl = "http://localhost:" + wireMockPort;
-        System.out.println("WireMock is running on port: " + wireMockPort); // Логируем порт
+        System.out.println("WireMock is running on port: " + wireMockPort);
         statClient = new StatClient(baseUrl, 5000);
         objectMapper.registerModule(new JavaTimeModule());
     }
