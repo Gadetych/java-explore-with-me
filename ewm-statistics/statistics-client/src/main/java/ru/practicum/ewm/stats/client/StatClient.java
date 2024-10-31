@@ -74,18 +74,7 @@ public class StatClient {
         webClient.post()
                 .uri(uriBuilder -> uriBuilder.path("/hit").build())
                 .body(Mono.just(dto), EndpointHitRequestDto.class)
-//                Пока не понимаю как тут отлавливать исключения и ApiError, и надо ли это делать вообще...
-//                .exchangeToMono(clientResponse -> {
-//                    if (clientResponse.statusCode().equals(HttpStatus.CREATED)) {
-//                        return clientResponse.bodyToMono(Void.class);
-//                    } else if (clientResponse.statusCode().is4xxClientError()) {
-//                        throw new CustomException(clientResponse.bodyToMono(ApiError.class).block());
-//                    }else {
-//                        return clientResponse.createException().flatMap(Mono::error);
-//                    }
-//                })
                 .retrieve()
-//                вызовет WebClientException, если код состояния равен 4xx (ошибка клиента) или 5xx (ошибка сервера)
                 .bodyToMono(Void.class)
                 .block();
     }
