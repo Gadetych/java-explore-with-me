@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.mapper.ViewStatMapper;
-import ru.practicum.ewm.model.ViewStats;
 import ru.practicum.ewm.repository.ViewStatRepository;
 import ru.practicum.ewm.stats.common.dto.EndpointHitRequestDto;
 import ru.practicum.ewm.stats.common.dto.ViewStatsResponseDto;
@@ -30,15 +29,13 @@ public class ViewStatServiceImpl implements ViewStatService {
     @Override
     public List<ViewStatsResponseDto> getStats(LocalDateTime start, LocalDateTime end, List<String> uris, boolean unique) {
         log.debug("==> Get endpoint hits start: {}, end: {}, uris: {}, unique: {}", start, end, uris, unique);
-        List<ViewStats> resultModel;
+        List<ViewStatsResponseDto> responseDtoList;
         if (unique) {
-            resultModel = repository.findViewStatsByUriForUniqueIP(start, end, uris);
+            responseDtoList = repository.findViewStatsByUriForUniqueIP(start, end, uris);
         } else {
-            resultModel = repository.findViewStatsByUri(start, end, uris);
+            responseDtoList = repository.findViewStatsByUri(start, end, uris);
         }
-        log.debug("<== Get endpoint hits result: {}", resultModel);
-        return resultModel.stream()
-                .map(ViewStatMapper::modelToResponseDto)
-                .toList();
+        log.debug("<== Get endpoint hits result: {}", responseDtoList);
+        return responseDtoList;
     }
 }

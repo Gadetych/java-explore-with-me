@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.model.EndpointHit;
-import ru.practicum.ewm.model.ViewStats;
+import ru.practicum.ewm.stats.common.dto.ViewStatsResponseDto;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -62,7 +62,7 @@ class ViewStatRepositoryTest {
     @Test
     void findViewStatsByUri_shouldReturnViewStats() {
         List<String> uris = List.of(uri1, uri2);
-        List<ViewStats> result = repository.findViewStatsByUri(now, now.plusDays(1), uris);
+        List<ViewStatsResponseDto> result = repository.findViewStatsByUri(now, now.plusDays(1), uris);
 
         assertFalse(result.isEmpty());
         assertEquals(2, result.size());
@@ -76,7 +76,7 @@ class ViewStatRepositoryTest {
     @Test
     void findViewStatsByUriForUniqueIP_shouldReturnViewStatsForUniqueIP() {
         List<String> uris = List.of(uri1, uri2);
-        List<ViewStats> result = repository.findViewStatsByUriForUniqueIP(now, now.plusDays(1), uris);
+        List<ViewStatsResponseDto> result = repository.findViewStatsByUriForUniqueIP(now, now.plusDays(1), uris);
 
         assertFalse(result.isEmpty());
         assertEquals(2, result.size());

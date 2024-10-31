@@ -2,9 +2,7 @@ package ru.practicum.ewm.mapper;
 
 import lombok.experimental.UtilityClass;
 import ru.practicum.ewm.model.EndpointHit;
-import ru.practicum.ewm.model.ViewStats;
 import ru.practicum.ewm.stats.common.dto.EndpointHitRequestDto;
-import ru.practicum.ewm.stats.common.dto.ViewStatsResponseDto;
 
 @UtilityClass
 public class ViewStatMapper {
@@ -16,13 +14,5 @@ public class ViewStatMapper {
         model.setIp(dto.getIp());
         model.setTimestamp(dto.getTimestamp());
         return model;
-    }
-
-    public ViewStatsResponseDto modelToResponseDto(ViewStats model) {
-        ViewStatsResponseDto dto = new ViewStatsResponseDto();
-        dto.setApp(model.getApp());
-        dto.setUri(model.getUri());
-        dto.setHits(model.getHits());
-        return dto;
     }
 }
