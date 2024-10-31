@@ -1,0 +1,4 @@
+stat:
+  client:
+    timeout: 5000
+    base-url: "http://localhost:9090"
