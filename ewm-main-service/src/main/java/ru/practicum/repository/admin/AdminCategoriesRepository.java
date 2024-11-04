@@ -1,0 +1,13 @@
+package ru.practicum.repository.admin;
+
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
+import ru.practicum.model.Category;
+
+import java.util.List;
+
+public interface AdminCategoriesRepository extends CrudRepository<Category, Integer> {
+    @Query("SELECT c FROM Category c ORDER BY c.id LIMIT :size OFFSET :from")
+    List<Category> findAllLimit(@Param("from") int from, @Param("size") int size);
+}
