@@ -7,7 +7,7 @@ import ru.practicum.dto.event.UpdateEventUserRequest;
 
 import java.util.List;
 
-public interface PrivateEventsService {
+public interface EventsService {
     List<EventShortDto> findAll(long userId, int from, int size);
 
     EventFullDto create(long userId, NewEventDto requestBody);

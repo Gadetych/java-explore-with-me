@@ -12,7 +12,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import ru.practicum.dto.user.NewUserRequest;
 import ru.practicum.dto.user.UserDto;
-import ru.practicum.service.AdminUsersService;
+import ru.practicum.service.UsersService;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -32,7 +32,7 @@ class AdminUsersControllerTest {
     private final MockMvc mvc;
     private final ObjectMapper mapper;
     @MockBean
-    private final AdminUsersService service;
+    private final UsersService service;
 
     String baseUri = "/admin/users";
     long id = 1L;
@@ -61,12 +61,12 @@ class AdminUsersControllerTest {
 
     @Test
     void findAllUsers_shouldReturnStatus200() throws Exception {
-        List<Long> array = List.of(id);
+        List<Long> ids = List.of(id);
         int from = 0;
         int size = 1;
-        String uriGetAllUsers = String.format("%s?array=%d&from=%d&size=%d", baseUri, array.get(0), from, size);
+        String uriGetAllUsers = String.format("%s?ids=%d&from=%d&size=%d", baseUri, ids.get(0), from, size);
         System.out.println("Логирование uri = " + uriGetAllUsers);
-        when(service.findAllUsers(array, from, size)).thenReturn(List.of(dto));
+        when(service.findAllUsers(ids, from, size)).thenReturn(List.of(dto));
         mvc.perform(setRequestHeadersWithoutBody(get(uriGetAllUsers)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(id))
@@ -76,10 +76,10 @@ class AdminUsersControllerTest {
 
     @Test
     void findAllUsersWithDefaultValue_shouldReturnStatus200() throws Exception {
-        List<Long> array = List.of(id);
-        String uriGetAllUsers = String.format("%s?array=%d", baseUri, array.get(0));
+        List<Long> ids = List.of(id);
+        String uriGetAllUsers = String.format("%s?ids=%d", baseUri, ids.get(0));
         System.out.println("Логирование uri = " + uriGetAllUsers);
-        when(service.findAllUsers(array, 0, 10)).thenReturn(List.of(dto));
+        when(service.findAllUsers(ids, 0, 10)).thenReturn(List.of(dto));
         mvc.perform(setRequestHeadersWithoutBody(get(uriGetAllUsers)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(id))

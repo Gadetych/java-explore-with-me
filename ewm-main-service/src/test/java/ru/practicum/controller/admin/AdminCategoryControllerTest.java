@@ -12,7 +12,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import ru.practicum.dto.category.CategoryDto;
 import ru.practicum.dto.category.NewCategoryDto;
-import ru.practicum.service.AdminCategoriesService;
+import ru.practicum.service.CategoriesService;
 
 import java.nio.charset.StandardCharsets;
 
@@ -31,7 +31,7 @@ class AdminCategoryControllerTest {
     private final MockMvc mvc;
     private final ObjectMapper mapper;
     @MockBean
-    private final AdminCategoriesService service;
+    private final CategoriesService service;
 
     String baseUri = "/admin/categories";
     String name = "name";

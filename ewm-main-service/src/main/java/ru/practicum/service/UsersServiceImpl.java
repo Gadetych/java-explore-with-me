@@ -1,8 +1,7 @@
-package ru.practicum.service.admin;
+package ru.practicum.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.user.NewUserRequest;
@@ -11,20 +10,18 @@ import ru.practicum.exception.NotFoundException;
 import ru.practicum.mapper.UserMapper;
 import ru.practicum.model.User;
 import ru.practicum.repository.UsersRepository;
-import ru.practicum.service.AdminUsersService;
 
 import java.util.List;
 
 @Service
-@Transactional
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Slf4j
-public class AdminUsersServiceImpl implements AdminUsersService {
+public class UsersServiceImpl implements UsersService {
     private final UsersRepository repository;
 
     @Override
     public List<UserDto> findAllUsers(List<Long> array, int from, int size) {
-        Sort sort = Sort.by(Sort.Direction.ASC, "id");
         List<User> users;
         if (array == null || array.isEmpty()) {
             users = repository.findAllLimit(from, size);
@@ -36,6 +33,7 @@ public class AdminUsersServiceImpl implements AdminUsersService {
                 .toList();
     }
 
+    @Transactional
     @Override
     public UserDto createUser(NewUserRequest requestBody) {
         log.debug("==> Creating new user: {}", requestBody);
@@ -44,6 +42,7 @@ public class AdminUsersServiceImpl implements AdminUsersService {
         return UserMapper.modelToDto(model);
     }
 
+    @Transactional
     @Override
     public void deleteUser(long userId) {
         log.debug("==> Deleting user: {}", userId);

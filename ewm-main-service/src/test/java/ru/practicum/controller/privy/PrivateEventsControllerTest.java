@@ -17,7 +17,7 @@ import ru.practicum.dto.event.NewEventDto;
 import ru.practicum.dto.event.UpdateEventUserRequest;
 import ru.practicum.dto.location.LocationDto;
 import ru.practicum.enums.StateAction;
-import ru.practicum.service.PrivateEventsService;
+import ru.practicum.service.EventsService;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -42,7 +42,7 @@ class PrivateEventsControllerTest {
     private final MockMvc mvc;
     private final ObjectMapper objectMapper;
     @MockBean
-    private PrivateEventsService service;
+    private EventsService service;
 
     String baseUri = "/users/%d/events";
 

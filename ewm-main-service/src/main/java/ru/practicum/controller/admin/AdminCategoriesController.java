@@ -15,14 +15,14 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.dto.category.CategoryDto;
 import ru.practicum.dto.category.NewCategoryDto;
-import ru.practicum.service.AdminCategoriesService;
+import ru.practicum.service.CategoriesService;
 
 @RestController
 @RequestMapping("/admin/categories")
 @RequiredArgsConstructor
 @Slf4j
 public class AdminCategoriesController {
-    private final AdminCategoriesService service;
+    private final CategoriesService service;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)

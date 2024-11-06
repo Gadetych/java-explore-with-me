@@ -1,4 +1,4 @@
-package ru.practicum.service.privy;
+package ru.practicum.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,23 +19,21 @@ import ru.practicum.model.User;
 import ru.practicum.repository.EventRepository;
 import ru.practicum.repository.LocationRepository;
 import ru.practicum.repository.UsersRepository;
-import ru.practicum.service.PrivateEventsService;
-import ru.practicum.service.PublicCategoriesService;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
+@Transactional(readOnly = true)
 @Slf4j
-public class PrivateEventsServiceImpl implements PrivateEventsService {
+public class EventsServiceImpl implements EventsService {
     private final EventRepository eventRepository;
     private final StatClient statClient;
-    private final PublicCategoriesService publicCategoriesService;
-    private final UsersRepository UsersRepository;
+    private final CategoriesService categoriesService;
     private final UsersRepository usersRepository;
     private final LocationRepository locationRepository;
 
+    //Private
     @Override
     public List<EventShortDto> findAll(long userId, int from, int size) {
         log.debug("==> Find all events for userId {}, from {}, size {} ", userId, from, size);
@@ -49,12 +47,13 @@ public class PrivateEventsServiceImpl implements PrivateEventsService {
                 .toList();
     }
 
+    @Transactional
     @Override
     public EventFullDto create(long userId, NewEventDto requestBody) {
         log.debug("==> Create new event {} for userId {}", requestBody, userId);
 //        TODO Проверить существование категории и пользователя
 //         (имеет ли смысл проверять пользователя, если он уже авторизовался??)
-        CategoryDto categoryDto = publicCategoriesService.findById(requestBody.getCategory());
+        CategoryDto categoryDto = categoriesService.findById(requestBody.getCategory());
         User user = usersRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found by id: " + userId));
         Location location = locationRepository.save(LocationMapper.dtoToModel(requestBody.getLocation()));
 //        TODO добавить получение статистики посещений
@@ -70,6 +69,7 @@ public class PrivateEventsServiceImpl implements PrivateEventsService {
         return null;
     }
 
+    @Transactional
     @Override
     public EventFullDto update(long userId, long eventId, UpdateEventUserRequest requestBody) {
         return null;

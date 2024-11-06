@@ -5,7 +5,7 @@ import ru.practicum.dto.user.UserDto;
 
 import java.util.List;
 
-public interface AdminUsersService {
+public interface UsersService {
     List<UserDto> findAllUsers(List<Long> array, int from, int size);
 
     UserDto createUser(NewUserRequest requestBody);

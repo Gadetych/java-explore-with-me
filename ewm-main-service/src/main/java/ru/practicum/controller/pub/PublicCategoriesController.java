@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.dto.category.CategoryDto;
-import ru.practicum.service.PublicCategoriesService;
+import ru.practicum.service.CategoriesService;
 
 import java.util.List;
 
@@ -19,7 +19,7 @@ import java.util.List;
 @RequestMapping("/categories")
 @Slf4j
 public class PublicCategoriesController {
-    private final PublicCategoriesService service;
+    private final CategoriesService service;
 
     @GetMapping
     public List<CategoryDto> findAll(@PositiveOrZero

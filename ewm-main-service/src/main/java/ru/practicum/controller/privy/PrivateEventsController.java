@@ -21,7 +21,7 @@ import ru.practicum.dto.event.UpdateEventUserRequest;
 import ru.practicum.dto.request.EventRequestStatusUpdateRequest;
 import ru.practicum.dto.request.EventRequestStatusUpdateResult;
 import ru.practicum.dto.request.ParticipationRequestDto;
-import ru.practicum.service.PrivateEventsService;
+import ru.practicum.service.EventsService;
 
 import java.util.List;
 
@@ -31,7 +31,7 @@ import java.util.List;
 @Slf4j
 @Validated
 public class PrivateEventsController {
-    private final PrivateEventsService service;
+    private final EventsService service;
 
     @GetMapping
     public List<EventShortDto> findAll(@PathVariable long userId,

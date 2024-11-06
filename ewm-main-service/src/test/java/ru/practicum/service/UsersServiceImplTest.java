@@ -1,4 +1,4 @@
-package ru.practicum.service.admin;
+package ru.practicum.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,9 +18,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest(properties = "spring.profiles.active=test")
 @Transactional
-class AdminUsersServiceImplTest {
+class UsersServiceImplTest {
     @Autowired
-    private AdminUsersServiceImpl service;
+    private UsersServiceImpl service;
     String name1 = "name1";
     String name2 = "name2";
     String name3 = "name3";

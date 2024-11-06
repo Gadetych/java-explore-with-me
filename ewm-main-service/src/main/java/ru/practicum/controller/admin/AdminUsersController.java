@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.dto.user.NewUserRequest;
 import ru.practicum.dto.user.UserDto;
-import ru.practicum.service.AdminUsersService;
+import ru.practicum.service.UsersService;
 
 import java.util.List;
 
@@ -27,13 +27,13 @@ import java.util.List;
 @Validated
 @RequiredArgsConstructor
 public class AdminUsersController {
-    private final AdminUsersService service;
+    private final UsersService service;
 
     @GetMapping
     public List<UserDto> findAllUsers(@RequestParam(required = false) List<Long> ids,
                                       @RequestParam(required = false, defaultValue = "0") int from,
                                       @RequestParam(required = false, defaultValue = "10") int size) {
-        log.info("==> findAllUsers array={}, from={}, size={}", ids, from, size);
+        log.info("==> findAllUsers ids={}, from={}, size={}", ids, from, size);
         return service.findAllUsers(ids, from, size);
     }
 
