@@ -1,12 +1,12 @@
 package ru.practicum.mapper;
 
 import lombok.experimental.UtilityClass;
-import ru.practicum.dto.admin.CategoryDto;
-import ru.practicum.dto.admin.NewCategoryDto;
+import ru.practicum.dto.category.CategoryDto;
+import ru.practicum.dto.category.NewCategoryDto;
 import ru.practicum.model.Category;
 
 @UtilityClass
-public class AdminCategoriesMapper {
+public class CategoryMapper {
     public static Category dtoToModel(NewCategoryDto dto) {
         return Category.builder()
                 .name(dto.getName())

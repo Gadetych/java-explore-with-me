@@ -5,10 +5,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.dto.admin.CategoryDto;
-import ru.practicum.dto.admin.NewCategoryDto;
+import ru.practicum.dto.category.CategoryDto;
+import ru.practicum.dto.category.NewCategoryDto;
 import ru.practicum.model.Category;
-import ru.practicum.repository.admin.AdminCategoriesRepository;
+import ru.practicum.repository.CategoriesRepository;
+import ru.practicum.service.AdminCategoriesServiceImpl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -20,7 +21,7 @@ class AdminCategoriesServiceImplTest {
     @Autowired
     private AdminCategoriesServiceImpl service;
     @Autowired
-    private AdminCategoriesRepository repository;
+    private CategoriesRepository repository;
 
     long id;
     String name = "name";

@@ -1,7 +1,7 @@
 package ru.practicum.service;
 
-import ru.practicum.dto.admin.CategoryDto;
-import ru.practicum.dto.admin.NewCategoryDto;
+import ru.practicum.dto.category.CategoryDto;
+import ru.practicum.dto.category.NewCategoryDto;
 
 public interface AdminCategoriesService {
     CategoryDto create(NewCategoryDto requestBody);

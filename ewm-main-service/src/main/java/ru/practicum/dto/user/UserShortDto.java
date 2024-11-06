@@ -1,4 +1,4 @@
-package ru.practicum.dto.admin;
+package ru.practicum.dto.user;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class CategoryDto {
+public class UserShortDto {
     private long id;
     private String name;
 }

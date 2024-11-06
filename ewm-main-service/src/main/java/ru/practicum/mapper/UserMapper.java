@@ -1,12 +1,13 @@
 package ru.practicum.mapper;
 
 import lombok.experimental.UtilityClass;
-import ru.practicum.dto.admin.NewUserRequest;
-import ru.practicum.dto.admin.UserDto;
+import ru.practicum.dto.user.NewUserRequest;
+import ru.practicum.dto.user.UserDto;
+import ru.practicum.dto.user.UserShortDto;
 import ru.practicum.model.User;
 
 @UtilityClass
-public class AdminUsersMapper {
+public class UserMapper {
     public User dtoToModel(NewUserRequest dto) {
         return User.builder()
                 .name(dto.getName())
@@ -19,6 +20,13 @@ public class AdminUsersMapper {
                 .id(model.getId())
                 .name(model.getName())
                 .email(model.getEmail())
+                .build();
+    }
+
+    public UserShortDto modelToUserShortDto(User model) {
+        return UserShortDto.builder()
+                .id(model.getId())
+                .name(model.getName())
                 .build();
     }
 }

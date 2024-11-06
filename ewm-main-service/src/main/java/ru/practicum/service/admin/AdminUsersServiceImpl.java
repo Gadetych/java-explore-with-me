@@ -5,12 +5,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.dto.admin.NewUserRequest;
-import ru.practicum.dto.admin.UserDto;
+import ru.practicum.dto.user.NewUserRequest;
+import ru.practicum.dto.user.UserDto;
 import ru.practicum.exception.NotFoundException;
-import ru.practicum.mapper.AdminUsersMapper;
+import ru.practicum.mapper.UserMapper;
 import ru.practicum.model.User;
-import ru.practicum.repository.admin.AdminUsersRepository;
+import ru.practicum.repository.UsersRepository;
 import ru.practicum.service.AdminUsersService;
 
 import java.util.List;
@@ -20,7 +20,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class AdminUsersServiceImpl implements AdminUsersService {
-    private final AdminUsersRepository repository;
+    private final UsersRepository repository;
 
     @Override
     public List<UserDto> findAllUsers(List<Long> array, int from, int size) {
@@ -32,16 +32,16 @@ public class AdminUsersServiceImpl implements AdminUsersService {
             users = repository.findAllById(array);
         }
         return users.stream()
-                .map(AdminUsersMapper::modelToDto)
+                .map(UserMapper::modelToDto)
                 .toList();
     }
 
     @Override
     public UserDto createUser(NewUserRequest requestBody) {
         log.debug("==> Creating new user: {}", requestBody);
-        User model = repository.save(AdminUsersMapper.dtoToModel(requestBody));
+        User model = repository.save(UserMapper.dtoToModel(requestBody));
         log.debug("<== Creating new user: {}", model);
-        return AdminUsersMapper.modelToDto(model);
+        return UserMapper.modelToDto(model);
     }
 
     @Override

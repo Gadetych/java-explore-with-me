@@ -1,6 +1,5 @@
 package ru.practicum.controller.pub;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,8 +8,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
-import ru.practicum.dto.admin.CategoryDto;
-import ru.practicum.dto.admin.NewCategoryDto;
+import ru.practicum.dto.category.CategoryDto;
 import ru.practicum.exception.NotFoundException;
 import ru.practicum.service.pub.PublicCategoriesServiceImpl;
 
@@ -26,15 +24,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 class PublicCategoriesControllerTest {
     private final MockMvc mvc;
-    private final ObjectMapper mapper;
     @MockBean
     private final PublicCategoriesServiceImpl service;
 
     String baseUri = "/categories";
     String name = "name";
-    NewCategoryDto requestBody = NewCategoryDto.builder()
-            .name(name)
-            .build();
     long id = 1;
     CategoryDto responseBody = CategoryDto.builder()
             .id(id)
@@ -63,7 +57,7 @@ class PublicCategoriesControllerTest {
 
     @Test
     void find_shouldReturnStatusOk() throws Exception {
-        when(service.find(id)).thenReturn(responseBody);
+        when(service.findById(id)).thenReturn(responseBody);
 
         mvc.perform(setRequestHeadersWithoutBody(get(baseUri + "/" + id)))
                 .andExpect(status().isOk())
@@ -73,7 +67,7 @@ class PublicCategoriesControllerTest {
 
     @Test
     void find_shouldReturnStatusNotFound() throws Exception {
-        when(service.find(id)).thenThrow(new NotFoundException(String.format("Category with id=%d was not found", id)));
+        when(service.findById(id)).thenThrow(new NotFoundException(String.format("Category with id=%d was not found", id)));
 
         mvc.perform(setRequestHeadersWithoutBody(get(baseUri + "/" + id)))
                 .andExpect(status().isNotFound());

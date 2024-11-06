@@ -4,11 +4,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.dto.admin.CategoryDto;
+import ru.practicum.dto.category.CategoryDto;
 import ru.practicum.exception.NotFoundException;
-import ru.practicum.mapper.AdminCategoriesMapper;
+import ru.practicum.mapper.CategoryMapper;
 import ru.practicum.model.Category;
-import ru.practicum.repository.admin.AdminCategoriesRepository;
+import ru.practicum.repository.CategoriesRepository;
 import ru.practicum.service.PublicCategoriesService;
 
 import java.util.List;
@@ -18,7 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class PublicCategoriesServiceImpl implements PublicCategoriesService {
-    private final AdminCategoriesRepository repository;
+    private final CategoriesRepository repository;
 
     @Override
     public List<CategoryDto> findAll(int from, int size) {
@@ -26,15 +26,15 @@ public class PublicCategoriesServiceImpl implements PublicCategoriesService {
         List<Category> result = repository.findAllLimit(from, size);
         log.debug("<== Find all Categories from {}, size {}", from, size);
         return result.stream()
-                .map(AdminCategoriesMapper::modelToDto)
+                .map(CategoryMapper::modelToDto)
                 .toList();
     }
 
     @Override
-    public CategoryDto find(long catId) {
+    public CategoryDto findById(long catId) {
         log.debug("==> Find Category with id {}", catId);
         Category result = repository.findById((int) catId).orElseThrow(() -> new NotFoundException(String.format("Category with id=%d was not found", catId)));
         log.debug("<== Find Category with id {}", catId);
-        return AdminCategoriesMapper.modelToDto(result);
+        return CategoryMapper.modelToDto(result);
     }
 }

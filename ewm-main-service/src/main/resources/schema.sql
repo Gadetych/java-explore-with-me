@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS events
     description        VARCHAR(7000)                       NOT NULL,
     event_date         TIMESTAMP                           NOT NULL,
     created_on         TIMESTAMP                           NOT NULL,
-    published_on       TIMESTAMP                           NOT NULL,
+    published_on TIMESTAMP,
     location_id        BIGINT                              NOT NULL,
     paid               BOOLEAN DEFAULT (false),
     participant_limit  INTEGER DEFAULT (0),

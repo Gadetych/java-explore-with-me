@@ -5,9 +5,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.dto.admin.CategoryDto;
+import ru.practicum.dto.category.CategoryDto;
 import ru.practicum.model.Category;
-import ru.practicum.repository.admin.AdminCategoriesRepository;
+import ru.practicum.repository.CategoriesRepository;
 
 import java.util.List;
 
@@ -22,7 +22,7 @@ class PublicCategoriesServiceImplTest {
     @Autowired
     private PublicCategoriesServiceImpl service;
     @Autowired
-    private AdminCategoriesRepository repository;
+    private CategoriesRepository repository;
 
     long id1;
     long id2;
@@ -61,8 +61,8 @@ class PublicCategoriesServiceImplTest {
     }
 
     @Test
-    void find_shouldReturnNotNull() {
-        CategoryDto result = service.find(id1);
+    void find_ById_shouldReturnNotNull() {
+        CategoryDto result = service.findById(id1);
 
         assertNotNull(result);
         assertEquals(id1, result.getId());

@@ -2,6 +2,8 @@ package ru.practicum.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -41,18 +43,23 @@ public class Event {
     private LocalDateTime eventDate;
     @Column(name = "created_on", nullable = false)
     private LocalDateTime createdOn;
-    @Column(name = "published_on", nullable = false)
+    @Column(name = "published_on")
     private LocalDateTime publishedOn;
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "location_id", nullable = false)
     private Location location;
     @Column
+    @Builder.Default
     private boolean paid = false;
     @Column(name = "participant_limit")
+    @Builder.Default
     private int participantLimit = 0;
     @Column(name = "request_moderation")
+    @Builder.Default
     private boolean requestModeration = true;
+    @Enumerated(value = EnumType.STRING)
     @Column(name = "state", nullable = false)
+    @Builder.Default
     private StateOfPublication state = StateOfPublication.PENDING;
     @Column(length = 120, unique = true, nullable = false)
     private String title;

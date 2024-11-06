@@ -1,7 +1,6 @@
-package ru.practicum.dto.admin;
+package ru.practicum.dto.location;
 
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,8 +10,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class NewCategoryDto {
+public class LocationDto {
     @NotNull
-    @Size(min = 1, max = 50)
-    private String name;
+    private double lat;
+    @NotNull
+    private double lon;
 }
