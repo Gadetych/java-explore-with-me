@@ -69,7 +69,7 @@ class CategoriesServiceImplTest {
     void delete() {
         service.delete(id);
 
-        assertTrue(repository.findById((int) id).isEmpty());
+        assertTrue(repository.findById(id).isEmpty());
     }
 
     @Test
@@ -81,7 +81,7 @@ class CategoriesServiceImplTest {
                 .build();
         service.update(dto);
 
-        Category result = repository.findById((int) id).get();
+        Category result = repository.findById(id).get();
 
         assertNotNull(result);
         assertEquals(newName, result.getName());

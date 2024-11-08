@@ -1,5 +1,6 @@
 package ru.practicum.model;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -45,7 +46,7 @@ public class Event {
     private LocalDateTime createdOn;
     @Column(name = "published_on")
     private LocalDateTime publishedOn;
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "location_id", nullable = false)
     private Location location;
     @Column
@@ -54,6 +55,9 @@ public class Event {
     @Column(name = "participant_limit")
     @Builder.Default
     private int participantLimit = 0;
+    //    FIXME
+//    @Builder.Default
+//    private int currentNumberParticipants = 0;
     @Column(name = "request_moderation")
     @Builder.Default
     private boolean requestModeration = true;

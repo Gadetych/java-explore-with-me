@@ -34,7 +34,7 @@ public class CategoriesServiceImpl implements CategoriesService {
     @Override
     public void delete(long catId) {
         log.debug("==> Delete category: {}", catId);
-        repository.deleteById((int) catId);
+        repository.deleteById(catId);
     }
 
     @Transactional
@@ -60,7 +60,7 @@ public class CategoriesServiceImpl implements CategoriesService {
     @Override
     public CategoryDto findById(long catId) {
         log.debug("==> Find Category with id {}", catId);
-        Category result = repository.findById((int) catId).orElseThrow(() -> new NotFoundException(String.format("Category with id=%d was not found", catId)));
+        Category result = repository.findById(catId).orElseThrow(() -> new NotFoundException(String.format("Category with id=%d was not found", catId)));
         log.debug("<== Find Category with id {}", catId);
         return CategoryMapper.modelToDto(result);
     }

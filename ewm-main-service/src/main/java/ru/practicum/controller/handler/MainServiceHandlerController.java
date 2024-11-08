@@ -10,7 +10,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.practicum.ewm.stats.common.dto.ApiError;
+import ru.practicum.exception.EventModificationException;
 import ru.practicum.exception.NotFoundException;
+import ru.practicum.exception.RequestModificationException;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -48,7 +50,7 @@ public class MainServiceHandlerController {
         return apiError;
     }
 
-    @ExceptionHandler
+    @ExceptionHandler({EventModificationException.class, RequestModificationException.class})
     @ResponseStatus(HttpStatus.CONFLICT)
     public ApiError handleUserAlreadyExist(DataIntegrityViolationException e) {
         log.info("409 {}", e.getMessage(), e);

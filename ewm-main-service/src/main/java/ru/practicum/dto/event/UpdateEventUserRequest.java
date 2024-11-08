@@ -1,7 +1,6 @@
 package ru.practicum.dto.event;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -33,9 +32,4 @@ public class UpdateEventUserRequest {
     private StateAction stateAction;
     @Length(min = 3, max = 120)
     private String title;
-
-    @AssertTrue
-    private boolean isValidEventDate() {
-        return eventDate.isAfter(LocalDateTime.now().plusHours(2));
-    }
 }

@@ -20,6 +20,7 @@ import java.util.List;
 public class UsersServiceImpl implements UsersService {
     private final UsersRepository repository;
 
+    //    Admin
     @Override
     public List<UserDto> findAllUsers(List<Long> array, int from, int size) {
         List<User> users;

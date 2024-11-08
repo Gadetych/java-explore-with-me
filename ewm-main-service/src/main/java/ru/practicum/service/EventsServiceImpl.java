@@ -4,23 +4,38 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.dto.category.CategoryDto;
 import ru.practicum.dto.event.EventFullDto;
 import ru.practicum.dto.event.EventShortDto;
 import ru.practicum.dto.event.NewEventDto;
 import ru.practicum.dto.event.UpdateEventUserRequest;
+import ru.practicum.dto.request.EventRequestStatusUpdateRequest;
+import ru.practicum.dto.request.EventRequestStatusUpdateResult;
+import ru.practicum.dto.request.ParticipationRequestDto;
+import ru.practicum.enums.StateAction;
+import ru.practicum.enums.StateOfPublication;
+import ru.practicum.enums.StatusParticipationRequest;
 import ru.practicum.ewm.stats.client.StatClient;
+import ru.practicum.ewm.stats.common.dto.ViewStatsResponseDto;
+import ru.practicum.exception.EventModificationException;
 import ru.practicum.exception.NotFoundException;
+import ru.practicum.exception.RequestModificationException;
 import ru.practicum.mapper.EventMapper;
 import ru.practicum.mapper.LocationMapper;
+import ru.practicum.mapper.RequestsMapper;
+import ru.practicum.model.Category;
 import ru.practicum.model.Event;
-import ru.practicum.model.Location;
+import ru.practicum.model.Request;
 import ru.practicum.model.User;
+import ru.practicum.repository.CategoriesRepository;
 import ru.practicum.repository.EventRepository;
-import ru.practicum.repository.LocationRepository;
+import ru.practicum.repository.RequestRepository;
 import ru.practicum.repository.UsersRepository;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -29,49 +44,194 @@ import java.util.List;
 public class EventsServiceImpl implements EventsService {
     private final EventRepository eventRepository;
     private final StatClient statClient;
-    private final CategoriesService categoriesService;
+    private final CategoriesRepository categoriesRepository;
     private final UsersRepository usersRepository;
-    private final LocationRepository locationRepository;
+    private final RequestRepository requestRepository;
 
     //Private
     @Override
     public List<EventShortDto> findAll(long userId, int from, int size) {
         log.debug("==> Find all events for userId {}, from {}, size {} ", userId, from, size);
-//       TODO: Необходимо получить статистику посещений и число принятых заявок
-        List<Event> result = eventRepository.findAllLimit(userId, from, size);
-//        int confirmedRequests = repository.
-//        List<ViewStatsResponseDto> viewStats = statClient.getViewStats()
-        log.debug("<== Find all events {} ", result);
-        return result.stream()
-                .map(EventMapper::modelToShortDto)
-                .toList();
+        List<Event> events = eventRepository.findAllLimitOrderByCreated(userId, from, size);
+        if (events.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<Long> eventIds = new ArrayList<>();
+        List<String> uris = new ArrayList<>();
+        for (Event event : events) {
+            eventIds.add(event.getId());
+            uris.add("/events/" + event.getId());
+        }
+        List<Integer> listConfirmedRequests = requestRepository.getIdsRequestsByStatus(eventIds, StatusParticipationRequest.CONFIRMED);
+        boolean unique = false;
+        List<ViewStatsResponseDto> viewStats = statClient.getViewStats(events.get(0).getCreatedOn(), events.get(events.size() - 1).getEventDate(), uris, unique);
+        List<EventShortDto> result = new ArrayList<>();
+        for (int i = 0; i < events.size(); i++) {
+            int confirmedRequest = listConfirmedRequests.isEmpty() ? 0 : listConfirmedRequests.get(i);
+            long views = viewStats.isEmpty() ? 0 : viewStats.get(i).getHits();
+            result.add(EventMapper.modelToShortDto(events.get(i), confirmedRequest, views));
+        }
+        log.debug("<== Find all events short dto {} ", result);
+        return result;
     }
 
     @Transactional
     @Override
     public EventFullDto create(long userId, NewEventDto requestBody) {
         log.debug("==> Create new event {} for userId {}", requestBody, userId);
-//        TODO Проверить существование категории и пользователя
-//         (имеет ли смысл проверять пользователя, если он уже авторизовался??)
-        CategoryDto categoryDto = categoriesService.findById(requestBody.getCategory());
+        Category category = categoriesRepository.findById(requestBody.getCategory()).orElseThrow(() -> new NotFoundException("Category not found by id: " + requestBody.getCategory()));
         User user = usersRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found by id: " + userId));
-        Location location = locationRepository.save(LocationMapper.dtoToModel(requestBody.getLocation()));
-//        TODO добавить получение статистики посещений
-//        TODO добавить статистику по одобренным запросам
-        Event model = EventMapper.newEventDtoToModel(requestBody, categoryDto, user, location);
+        Event model = EventMapper.newEventDtoToModel(requestBody, category, user);
         long eventId = eventRepository.save(model).getId();
-        model = eventRepository.findById(eventId).get();
-        return EventMapper.modelToFullDto(model);
+        model = eventRepository.findById(eventId).orElseThrow(() -> new NotFoundException("Event not found by id: " + eventId));
+//        Эти параметры должны быть 0 при создании события
+        int confirmedRequests = 0;
+        long views = 0;
+        log.debug("<== Create new event {} for userId {}", model, userId + "");
+        return EventMapper.modelToFullDto(model, confirmedRequests, views);
     }
 
     @Override
     public EventFullDto findById(long userId, long eventId) {
-        return null;
+        log.debug("==> Find event {} for userId {}", eventId, userId);
+        Event model = eventRepository.findByInitiatorIdAndId(userId, eventId).orElseThrow(() -> new NotFoundException("Event not found by id: " + eventId));
+        List<Integer> listConfirmedRequests = requestRepository.getIdsRequestsByStatus(List.of(eventId), StatusParticipationRequest.CONFIRMED);
+        int confirmedRequests = listConfirmedRequests.isEmpty() ? 0 : listConfirmedRequests.getFirst();
+        String uri = "/events/" + eventId;
+        boolean unique = false;
+        List<ViewStatsResponseDto> listViewStats = statClient.getViewStats(model.getCreatedOn(), model.getEventDate(), List.of(uri), unique);
+        long views = listViewStats.isEmpty() ? 0 : listViewStats.get(0).getHits();
+        log.debug("<== Find event {} for userId {}", model, userId + "");
+        return EventMapper.modelToFullDto(model, confirmedRequests, views);
     }
 
     @Transactional
     @Override
     public EventFullDto update(long userId, long eventId, UpdateEventUserRequest requestBody) {
-        return null;
+        log.debug("==> Update event {} for userId {} adn eventId {}", requestBody, userId, eventId);
+        Event model = eventRepository.findById(eventId).orElseThrow(() -> new NotFoundException("Event not found by id: " + eventId));
+        makeChangesToTheEventParams(model, requestBody);
+        model = eventRepository.save(model);
+        List<Integer> listConfirmedRequests = requestRepository.getIdsRequestsByStatus(List.of(eventId), StatusParticipationRequest.CONFIRMED);
+        int confirmedRequests = listConfirmedRequests.isEmpty() ? 0 : listConfirmedRequests.getFirst();
+        String uri = "/events/" + eventId;
+        boolean unique = false;
+        List<Long> listViews = statClient.getViewStats(model.getCreatedOn(), model.getEventDate(), List.of(uri), unique).stream()
+                .map(ViewStatsResponseDto::getHits)
+                .toList();
+        long views = listViews.isEmpty() ? 0 : listViews.get(0);
+        log.debug("<=== Update event model {} confirmed requests {}, views {}", model, confirmedRequests, views);
+        return EventMapper.modelToFullDto(model, confirmedRequests, views);
+    }
+
+    private void makeChangesToTheEventParams(Event model, UpdateEventUserRequest requestBody) {
+        if (model.getState().equals(StateOfPublication.PUBLISHED)) {
+            throw new EventModificationException("Only pending or canceled events can be changed");
+        }
+        if (requestBody.getCategory() != null) {
+            Category category = categoriesRepository.findById(requestBody.getCategory()).orElseThrow(() -> new NotFoundException("Category not found by id=" + requestBody.getCategory()));
+            model.setCategory(category);
+        }
+        if (requestBody.getAnnotation() != null) {
+            model.setAnnotation(requestBody.getAnnotation());
+        }
+        if (requestBody.getDescription() != null) {
+            model.setDescription(requestBody.getDescription());
+        }
+        if (requestBody.getEventDate() != null) {
+            if (requestBody.getEventDate().isAfter(LocalDateTime.now().plusHours(2))) {
+                model.setEventDate(requestBody.getEventDate());
+            } else {
+                throw new EventModificationException("The date and time on which the event is scheduled cannot be earlier than two hours from the current moment.");
+            }
+        }
+        if (requestBody.getLocation() != null) {
+            model.setLocation(LocationMapper.dtoToModel(requestBody.getLocation()));
+        }
+        if (requestBody.getPaid() != null) {
+            model.setPaid(requestBody.getPaid());
+        }
+        if (requestBody.getParticipantLimit() != null) {
+            model.setParticipantLimit(requestBody.getParticipantLimit());
+        }
+        if (requestBody.getRequestModeration() != null) {
+            model.setRequestModeration(requestBody.getRequestModeration());
+        }
+        if (requestBody.getStateAction() != null) {
+            model.setState(requestBody.getStateAction() == StateAction.CANCEL_REVIEW ? StateOfPublication.CANCELED : StateOfPublication.PUBLISHED);
+        }
+        if (requestBody.getTitle() != null) {
+            model.setTitle(requestBody.getTitle());
+        }
+    }
+
+    @Override
+    public List<ParticipationRequestDto> findRequests(long userId, long eventId) {
+        log.debug("==> Find requests for event {}, userId {}", eventId, userId);
+        List<Request> requests = requestRepository.findAllByRequesterIdAndEventId(userId, eventId);
+        log.debug("<== Find requests {}", requests);
+        return requests.stream()
+                .map(RequestsMapper::modelToDto)
+                .toList();
+    }
+
+    @Transactional
+//    TODO возможна проблема транзакций
+    @Override
+    public EventRequestStatusUpdateResult updateStatusRequest(long userId, long eventId, EventRequestStatusUpdateRequest requestBody) {
+        log.debug("==> Update status request {} for eventId {}, userId {}", requestBody, eventId, userId);
+        Event eventModel = eventRepository.findById(eventId).orElseThrow(() -> new NotFoundException("Event not found by id: " + eventId));
+        List<Integer> listConfirmedRequests = requestRepository.getIdsRequestsByStatus(List.of(eventId), StatusParticipationRequest.CONFIRMED);
+        int numberConfirmedRequests = listConfirmedRequests.isEmpty() ? 0 : listConfirmedRequests.getFirst();
+        if (eventModel.getParticipantLimit() <= numberConfirmedRequests) {
+            throw new RequestModificationException("The participant limit has been reached");
+        }
+        if (eventModel.getParticipantLimit() != 0 && eventModel.isRequestModeration()) {
+            changeStatusRequests(eventId, requestBody, eventModel, numberConfirmedRequests);
+        }
+        Map<StatusParticipationRequest, List<ParticipationRequestDto>> map = splitRequestsByStatus(eventId);
+        log.debug("<== Update status confirmed {}, rejected {}", map.get(StatusParticipationRequest.CONFIRMED), map.get(StatusParticipationRequest.REJECTED));
+        return EventRequestStatusUpdateResult.builder()
+                .confirmedRequests(map.get(StatusParticipationRequest.CONFIRMED))
+                .rejectedRequests(map.get(StatusParticipationRequest.REJECTED))
+                .build();
+    }
+
+    private void changeStatusRequests(long eventId, EventRequestStatusUpdateRequest requestBody, Event eventModel, int numberConfirmedRequests) {
+        StatusParticipationRequest newStatus = requestBody.getStatus();
+        List<Long> requestIds = requestBody.getRequestIds();
+        List<Request> requestsForUpdateStatus = requestRepository.findAllByIdIn(requestIds);
+        for (Request request : requestsForUpdateStatus) {
+            if (request.getStatus().equals(StatusParticipationRequest.PENDING)) {
+                request.setStatus(newStatus);
+                ++numberConfirmedRequests;
+                if (eventModel.getParticipantLimit() <= numberConfirmedRequests) {
+                    rejectUnconfirmedRequests(eventId);
+                    break;
+                }
+            } else throw new RequestModificationException("Status can be changed only for pending requests");
+            requestRepository.saveAll(requestsForUpdateStatus);
+        }
+    }
+
+    private void rejectUnconfirmedRequests(long eventId) {
+        List<Request> requests = requestRepository.findAllByStatusInAndEventIdOrderByStatus(List.of(StatusParticipationRequest.PENDING), eventId);
+        for (Request request : requests) {
+            request.setStatus(StatusParticipationRequest.REJECTED);
+        }
+        requestRepository.saveAll(requests);
+    }
+
+    private Map<StatusParticipationRequest, List<ParticipationRequestDto>> splitRequestsByStatus(long eventId) {
+        List<ParticipationRequestDto> confirmedRequests = new ArrayList<>();
+        List<ParticipationRequestDto> rejectedRequests = new ArrayList<>();
+        List<Request> requests = requestRepository.findAllByStatusInAndEventIdOrderByStatus(List.of(StatusParticipationRequest.CONFIRMED, StatusParticipationRequest.REJECTED), eventId);
+        for (Request request : requests) {
+            ParticipationRequestDto dto = RequestsMapper.modelToDto(request);
+            if (dto.getStatus().equals(StatusParticipationRequest.CONFIRMED)) {
+                confirmedRequests.add(dto);
+            } else rejectedRequests.add(dto);
+        }
+        return Map.of(StatusParticipationRequest.CONFIRMED, confirmedRequests, StatusParticipationRequest.REJECTED, rejectedRequests);
     }
 }

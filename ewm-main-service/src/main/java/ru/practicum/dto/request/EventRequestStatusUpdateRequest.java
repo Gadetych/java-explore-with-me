@@ -13,6 +13,6 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 public class EventRequestStatusUpdateRequest {
-    private List<Integer> requestIds;
+    private List<Long> requestIds;
     private StatusParticipationRequest status;
 }

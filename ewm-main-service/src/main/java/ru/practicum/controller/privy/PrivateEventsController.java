@@ -37,6 +37,7 @@ public class PrivateEventsController {
     public List<EventShortDto> findAll(@PathVariable long userId,
                                        @RequestParam(required = false, defaultValue = "0") int from,
                                        @RequestParam(required = false, defaultValue = "10") int size) {
+        log.info("==> Find all events by userId {}, from {}, size {}", userId, from, size);
         return service.findAll(userId, from, size);
     }
 
@@ -44,13 +45,14 @@ public class PrivateEventsController {
     @ResponseStatus(HttpStatus.CREATED)
     public EventFullDto create(@PathVariable long userId,
                                @RequestBody @Valid NewEventDto requestBody) {
+        log.info("==> Create new event {} by userId {}", requestBody, userId);
         return service.create(userId, requestBody);
     }
 
     @GetMapping("/{eventId}")
     public EventFullDto findById(@PathVariable long userId,
                                  @PathVariable long eventId) {
-//       TODO: В случае, если события с заданным id не найдено, возвращает статус код 404
+        log.info("==> Find event {} by userId {}", eventId, userId);
         return service.findById(userId, eventId);
     }
 
@@ -58,9 +60,7 @@ public class PrivateEventsController {
     public EventFullDto update(@PathVariable long userId,
                                @PathVariable long eventId,
                                @RequestBody @Valid UpdateEventUserRequest requestBody) {
-//  TODO:  изменить можно только отмененные события или события в состоянии ожидания модерации (Ожидается код ошибки 409)
-//дата и время на которые намечено событие не может быть раньше, чем через два часа от текущего момента (Ожидается код ошибки 409)
-//Данные для изменения информации о событии. Если поле в запросе не указано (равно null) - значит изменение этих данных не треубется.
+        log.info("==> Update event {} by userId {}, request body: {}", eventId, userId, requestBody);
         return service.update(userId, eventId, requestBody);
     }
 
@@ -69,17 +69,19 @@ public class PrivateEventsController {
     public List<ParticipationRequestDto> findRequests(@PathVariable long userId,
                                                       @PathVariable long eventId) {
 //        TODO: В случае, если по заданным фильтрам не найдено ни одной заявки, возвращает пустой список
-        return null;
+        log.info("==> Find requests by userId {}, event id {}", userId, eventId);
+        return service.findRequests(userId, eventId);
     }
 
     @PatchMapping("/{eventId}/requests")
-    public EventRequestStatusUpdateResult updateResult(@PathVariable long userId,
+    public EventRequestStatusUpdateResult updateStatusRequest(@PathVariable long userId,
                                                        @PathVariable long eventId,
                                                        @RequestBody @Valid EventRequestStatusUpdateRequest requestBody) {
+        log.info("==> Update status request {} by userId {}, event id {}", requestBody, userId, eventId);
 //    TODO: если для события лимит заявок равен 0 или отключена пре-модерация заявок, то подтверждение заявок не требуется
 //нельзя подтвердить заявку, если уже достигнут лимит по заявкам на данное событие (Ожидается код ошибки 409)
 //статус можно изменить только у заявок, находящихся в состоянии ожидания (Ожидается код ошибки 409)
 //если при подтверждении данной заявки, лимит заявок для события исчерпан, то все неподтверждённые заявки необходимо отклонить
-        return null;
+        return service.updateStatusRequest(userId, eventId, requestBody);
     }
 }
