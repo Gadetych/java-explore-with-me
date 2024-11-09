@@ -20,7 +20,7 @@ import lombok.NoArgsConstructor;
 public class Location {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Long id;
     @Column(name = "latitude", nullable = false)
     private double lat;
     @Column(name = "longitude", nullable = false)

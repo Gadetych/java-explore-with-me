@@ -55,9 +55,6 @@ public class Event {
     @Column(name = "participant_limit")
     @Builder.Default
     private int participantLimit = 0;
-    //    FIXME
-//    @Builder.Default
-//    private int currentNumberParticipants = 0;
     @Column(name = "request_moderation")
     @Builder.Default
     private boolean requestModeration = true;

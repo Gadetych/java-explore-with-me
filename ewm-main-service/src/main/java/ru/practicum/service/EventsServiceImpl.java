@@ -176,7 +176,7 @@ public class EventsServiceImpl implements EventsService {
     }
 
     @Transactional
-//    TODO возможна проблема транзакций
+//    FIXME возможна проблема транзакций
     @Override
     public EventRequestStatusUpdateResult updateStatusRequest(long userId, long eventId, EventRequestStatusUpdateRequest requestBody) {
         log.debug("==> Update status request {} for eventId {}, userId {}", requestBody, eventId, userId);
