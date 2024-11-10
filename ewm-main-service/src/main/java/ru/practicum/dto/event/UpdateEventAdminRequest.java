@@ -8,7 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.Length;
 import ru.practicum.dto.location.LocationDto;
-import ru.practicum.enums.StateActionUser;
+import ru.practicum.enums.StateActionAdmin;
 
 import java.time.LocalDateTime;
 
@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class UpdateEventUserRequest {
+public class UpdateEventAdminRequest {
     @Length(min = 20, max = 2000)
     private String annotation;
     @Positive
@@ -29,7 +29,7 @@ public class UpdateEventUserRequest {
     private Boolean paid;
     private Integer participantLimit;
     private Boolean requestModeration;
-    private StateActionUser stateAction;
+    private StateActionAdmin stateAction;
     @Length(min = 3, max = 120)
     private String title;
 }

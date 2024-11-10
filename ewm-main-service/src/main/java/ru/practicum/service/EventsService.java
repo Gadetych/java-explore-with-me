@@ -1,8 +1,10 @@
 package ru.practicum.service;
 
+import ru.practicum.dto.event.AdminParamEvent;
 import ru.practicum.dto.event.EventFullDto;
 import ru.practicum.dto.event.EventShortDto;
 import ru.practicum.dto.event.NewEventDto;
+import ru.practicum.dto.event.UpdateEventAdminRequest;
 import ru.practicum.dto.event.UpdateEventUserRequest;
 import ru.practicum.dto.request.EventRequestStatusUpdateRequest;
 import ru.practicum.dto.request.EventRequestStatusUpdateResult;
@@ -22,4 +24,8 @@ public interface EventsService {
     List<ParticipationRequestDto> findRequests(long userId, long eventId);
 
     EventRequestStatusUpdateResult updateStatusRequest(long userId, long eventId, EventRequestStatusUpdateRequest requestBody);
+
+    List<EventFullDto> findAll(AdminParamEvent build);
+
+    EventFullDto update(Long eventId, UpdateEventAdminRequest requestBody);
 }

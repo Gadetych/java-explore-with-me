@@ -10,7 +10,7 @@ import ru.practicum.dto.event.EventShortDto;
 import ru.practicum.dto.event.NewEventDto;
 import ru.practicum.dto.event.UpdateEventUserRequest;
 import ru.practicum.dto.location.LocationDto;
-import ru.practicum.enums.StateAction;
+import ru.practicum.enums.StateActionUser;
 import ru.practicum.enums.StateOfPublication;
 import ru.practicum.enums.StatusParticipationRequest;
 import ru.practicum.ewm.stats.client.StatClient;
@@ -226,7 +226,7 @@ class EventsServiceImplTest {
         long eventId = event1.getId();
         boolean unique = false;
         UpdateEventUserRequest updateEventUserRequest = UpdateEventUserRequest.builder()
-                .stateAction(StateAction.CANCEL_REVIEW)
+                .stateAction(StateActionUser.CANCEL_REVIEW)
                 .build();
         when(eventRepository.findById(eventId)).thenReturn(Optional.ofNullable(event1));
         when(eventRepository.save(any(Event.class))).thenReturn(event1);

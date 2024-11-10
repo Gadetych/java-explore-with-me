@@ -1,17 +1,24 @@
 package ru.practicum.service;
 
+import com.querydsl.core.types.dsl.BooleanExpression;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.dto.event.AdminParamEvent;
 import ru.practicum.dto.event.EventFullDto;
 import ru.practicum.dto.event.EventShortDto;
 import ru.practicum.dto.event.NewEventDto;
+import ru.practicum.dto.event.UpdateEventAdminRequest;
 import ru.practicum.dto.event.UpdateEventUserRequest;
 import ru.practicum.dto.request.EventRequestStatusUpdateRequest;
 import ru.practicum.dto.request.EventRequestStatusUpdateResult;
 import ru.practicum.dto.request.ParticipationRequestDto;
-import ru.practicum.enums.StateAction;
+import ru.practicum.enums.StateActionAdmin;
+import ru.practicum.enums.StateActionUser;
 import ru.practicum.enums.StateOfPublication;
 import ru.practicum.enums.StatusParticipationRequest;
 import ru.practicum.ewm.stats.client.StatClient;
@@ -24,6 +31,7 @@ import ru.practicum.mapper.LocationMapper;
 import ru.practicum.mapper.RequestsMapper;
 import ru.practicum.model.Category;
 import ru.practicum.model.Event;
+import ru.practicum.model.QEvent;
 import ru.practicum.model.Request;
 import ru.practicum.model.User;
 import ru.practicum.repository.CategoriesRepository;
@@ -58,21 +66,29 @@ public class EventsServiceImpl implements EventsService {
         }
         List<Long> eventIds = new ArrayList<>();
         List<String> uris = new ArrayList<>();
-        for (Event event : events) {
-            eventIds.add(event.getId());
-            uris.add("/events/" + event.getId());
-        }
+        collectEventIdsAndUris(events, eventIds, uris);
         List<Integer> listConfirmedRequests = requestRepository.getIdsRequestsByStatus(eventIds, StatusParticipationRequest.CONFIRMED);
         boolean unique = false;
         List<ViewStatsResponseDto> viewStats = statClient.getViewStats(events.get(0).getCreatedOn(), events.get(events.size() - 1).getEventDate(), uris, unique);
         List<EventShortDto> result = new ArrayList<>();
+        mappingListEventToListShortDto(events, result, listConfirmedRequests, viewStats);
+        log.debug("<== Find all events short dto {} ", result);
+        return result;
+    }
+
+    private void collectEventIdsAndUris(List<Event> events, List<Long> eventIds, List<String> uris) {
+        for (Event event : events) {
+            eventIds.add(event.getId());
+            uris.add("/events/" + event.getId());
+        }
+    }
+
+    private void mappingListEventToListShortDto(List<Event> events, List<EventShortDto> result, List<Integer> listConfirmedRequests, List<ViewStatsResponseDto> viewStats) {
         for (int i = 0; i < events.size(); i++) {
             int confirmedRequest = listConfirmedRequests.isEmpty() ? 0 : listConfirmedRequests.get(i);
             long views = viewStats.isEmpty() ? 0 : viewStats.get(i).getHits();
             result.add(EventMapper.modelToShortDto(events.get(i), confirmedRequest, views));
         }
-        log.debug("<== Find all events short dto {} ", result);
-        return result;
     }
 
     @Transactional
@@ -110,7 +126,7 @@ public class EventsServiceImpl implements EventsService {
     public EventFullDto update(long userId, long eventId, UpdateEventUserRequest requestBody) {
         log.debug("==> Update event {} for userId {} adn eventId {}", requestBody, userId, eventId);
         Event model = eventRepository.findById(eventId).orElseThrow(() -> new NotFoundException("Event not found by id: " + eventId));
-        makeChangesToTheEventParams(model, requestBody);
+        makeChangesEventParams(model, requestBody);
         model = eventRepository.save(model);
         List<Integer> listConfirmedRequests = requestRepository.getIdsRequestsByStatus(List.of(eventId), StatusParticipationRequest.CONFIRMED);
         int confirmedRequests = listConfirmedRequests.isEmpty() ? 0 : listConfirmedRequests.getFirst();
@@ -124,7 +140,7 @@ public class EventsServiceImpl implements EventsService {
         return EventMapper.modelToFullDto(model, confirmedRequests, views);
     }
 
-    private void makeChangesToTheEventParams(Event model, UpdateEventUserRequest requestBody) {
+    private void makeChangesEventParams(Event model, UpdateEventUserRequest requestBody) {
         if (model.getState().equals(StateOfPublication.PUBLISHED)) {
             throw new EventModificationException("Only pending or canceled events can be changed");
         }
@@ -158,7 +174,7 @@ public class EventsServiceImpl implements EventsService {
             model.setRequestModeration(requestBody.getRequestModeration());
         }
         if (requestBody.getStateAction() != null) {
-            model.setState(requestBody.getStateAction() == StateAction.CANCEL_REVIEW ? StateOfPublication.CANCELED : StateOfPublication.PUBLISHED);
+            model.setState(requestBody.getStateAction().equals(StateActionUser.CANCEL_REVIEW) ? StateOfPublication.CANCELED : StateOfPublication.PUBLISHED);
         }
         if (requestBody.getTitle() != null) {
             model.setTitle(requestBody.getTitle());
@@ -234,4 +250,114 @@ public class EventsServiceImpl implements EventsService {
         }
         return Map.of(StatusParticipationRequest.CONFIRMED, confirmedRequests, StatusParticipationRequest.REJECTED, rejectedRequests);
     }
+
+    //    Admin
+    @Override
+    public List<EventFullDto> findAll(AdminParamEvent paramSearch) {
+        BooleanExpression predicate = QEvent.event.isNotNull();
+        selectPredicate(predicate, paramSearch);
+        Sort sort = Sort.by(Sort.Direction.ASC, "id");
+        Pageable pr = PageRequest.of(paramSearch.getFrom() / paramSearch.getSize(), paramSearch.getSize(), sort);
+        List<Event> events = eventRepository.findAll(predicate, pr).stream().toList();
+        List<Long> eventIds = new ArrayList<>();
+        List<String> uris = new ArrayList<>();
+        collectEventIdsAndUris(events, eventIds, uris);
+        List<Integer> listConfirmedRequests = requestRepository.getIdsRequestsByStatus(eventIds, StatusParticipationRequest.CONFIRMED);
+        boolean unique = false;
+        List<ViewStatsResponseDto> viewStats = statClient.getViewStats(events.get(0).getCreatedOn(), events.get(events.size() - 1).getEventDate(), uris, unique);
+        List<EventFullDto> result = new ArrayList<>();
+        mappingListEventToListFullDto(events, result, listConfirmedRequests, viewStats);
+        return result;
+    }
+
+    private void selectPredicate(BooleanExpression predicate, AdminParamEvent paramSearch) {
+        if (paramSearch.getUsers() != null && !paramSearch.getUsers().isEmpty()) {
+            predicate = predicate.and(QEvent.event.initiator.id.in(paramSearch.getUsers()));
+        }
+        if (paramSearch.getStates() != null && !paramSearch.getStates().isEmpty()) {
+            predicate = predicate.and(QEvent.event.state.in(paramSearch.getStates()));
+        }
+        if (paramSearch.getCategories() != null && !paramSearch.getCategories().isEmpty()) {
+            predicate = predicate.and(QEvent.event.category.id.in(paramSearch.getCategories()));
+        }
+        if (paramSearch.getRangeStart() != null) {
+            predicate = predicate.and(QEvent.event.eventDate.goe(paramSearch.getRangeStart()));
+        }
+        if (paramSearch.getRangeEnd() != null) {
+            predicate = predicate.and(QEvent.event.eventDate.loe(paramSearch.getRangeEnd()));
+        }
+    }
+
+    private void mappingListEventToListFullDto(List<Event> events, List<EventFullDto> result, List<Integer> listConfirmedRequests, List<ViewStatsResponseDto> viewStats) {
+        for (int i = 0; i < events.size(); i++) {
+            int confirmedRequest = listConfirmedRequests.isEmpty() ? 0 : listConfirmedRequests.get(i);
+            long views = viewStats.isEmpty() ? 0 : viewStats.get(i).getHits();
+            result.add(EventMapper.modelToFullDto(events.get(i), confirmedRequest, views));
+        }
+    }
+
+    @Override
+    public EventFullDto update(Long eventId, UpdateEventAdminRequest requestBody) {
+        log.debug("==> Update event {} and eventId {}", requestBody, eventId);
+        Event model = eventRepository.findById(eventId).orElseThrow(() -> new NotFoundException("Event not found by id: " + eventId));
+        makeChangesEventParams(model, requestBody);
+        model = eventRepository.save(model);
+        List<Integer> listConfirmedRequests = requestRepository.getIdsRequestsByStatus(List.of(eventId), StatusParticipationRequest.CONFIRMED);
+        int confirmedRequests = listConfirmedRequests.isEmpty() ? 0 : listConfirmedRequests.getFirst();
+        String uri = "/events/" + eventId;
+        boolean unique = false;
+        List<Long> listViews = statClient.getViewStats(model.getCreatedOn(), model.getEventDate(), List.of(uri), unique).stream()
+                .map(ViewStatsResponseDto::getHits)
+                .toList();
+        long views = listViews.isEmpty() ? 0 : listViews.get(0);
+        log.debug("<=== Update event model {} confirmed requests {}, views {}", model, confirmedRequests, views);
+        return EventMapper.modelToFullDto(model, confirmedRequests, views);
+    }
+
+    private void makeChangesEventParams(Event model, UpdateEventAdminRequest requestBody) {
+        if (!model.getState().equals(StateOfPublication.PENDING)) {
+            throw new EventModificationException("Only pending or canceled events can be changed");
+        }
+        if (requestBody.getCategory() != null) {
+            Category category = categoriesRepository.findById(requestBody.getCategory()).orElseThrow(() -> new NotFoundException("Category not found by id=" + requestBody.getCategory()));
+            model.setCategory(category);
+        }
+        if (requestBody.getAnnotation() != null) {
+            model.setAnnotation(requestBody.getAnnotation());
+        }
+        if (requestBody.getDescription() != null) {
+            model.setDescription(requestBody.getDescription());
+        }
+        if (requestBody.getEventDate() != null) {
+            if (requestBody.getEventDate().isAfter(LocalDateTime.now().plusHours(1))) {
+                model.setEventDate(requestBody.getEventDate());
+            } else {
+                throw new EventModificationException("The date and time on which the event is scheduled cannot be earlier than two hours from the current moment.");
+            }
+        }
+        if (requestBody.getLocation() != null) {
+            model.setLocation(LocationMapper.dtoToModel(requestBody.getLocation()));
+        }
+        if (requestBody.getPaid() != null) {
+            model.setPaid(requestBody.getPaid());
+        }
+        if (requestBody.getParticipantLimit() != null) {
+            model.setParticipantLimit(requestBody.getParticipantLimit());
+        }
+        if (requestBody.getRequestModeration() != null) {
+            model.setRequestModeration(requestBody.getRequestModeration());
+        }
+        if (requestBody.getStateAction() != null) {
+            if (requestBody.getStateAction().equals(StateActionAdmin.REJECT_EVENT)) {
+                model.setState(StateOfPublication.CANCELED);
+            } else {
+                model.setState(StateOfPublication.PENDING);
+                model.setPublishedOn(LocalDateTime.now());
+            }
+        }
+        if (requestBody.getTitle() != null) {
+            model.setTitle(requestBody.getTitle());
+        }
+    }
+
 }

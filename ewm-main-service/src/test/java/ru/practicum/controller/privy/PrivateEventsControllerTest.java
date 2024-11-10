@@ -16,7 +16,7 @@ import ru.practicum.dto.event.EventShortDto;
 import ru.practicum.dto.event.NewEventDto;
 import ru.practicum.dto.event.UpdateEventUserRequest;
 import ru.practicum.dto.location.LocationDto;
-import ru.practicum.enums.StateAction;
+import ru.practicum.enums.StateActionUser;
 import ru.practicum.service.EventsService;
 
 import java.nio.charset.StandardCharsets;
@@ -157,7 +157,7 @@ class PrivateEventsControllerTest {
                 .paid(true)
                 .participantLimit(100)
                 .requestModeration(false)
-                .stateAction(StateAction.SEND_TO_REVIEW)
+                .stateAction(StateActionUser.SEND_TO_REVIEW)
                 .title("Updated Event Title")
                 .build();
 
