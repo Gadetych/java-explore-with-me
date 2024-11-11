@@ -184,7 +184,7 @@ public class EventsServiceImpl implements EventsService {
     @Override
     public List<ParticipationRequestDto> findRequests(long userId, long eventId) {
         log.debug("==> Find requests for event {}, userId {}", eventId, userId);
-        List<Request> requests = requestRepository.findAllByRequesterIdAndEventId(userId, eventId);
+        List<Request> requests = requestRepository.findAllByEventId(eventId);
         log.debug("<== Find requests {}", requests);
         return requests.stream()
                 .map(RequestsMapper::modelToDto)
@@ -192,7 +192,6 @@ public class EventsServiceImpl implements EventsService {
     }
 
     @Transactional
-//    FIXME возможна проблема транзакций
     @Override
     public EventRequestStatusUpdateResult updateStatusRequest(long userId, long eventId, EventRequestStatusUpdateRequest requestBody) {
         log.debug("==> Update status request {} for eventId {}, userId {}", requestBody, eventId, userId);
@@ -254,8 +253,9 @@ public class EventsServiceImpl implements EventsService {
     //    Admin
     @Override
     public List<EventFullDto> findAll(AdminParamEvent paramSearch) {
+        log.debug("==> Find all events parameters {}", paramSearch);
         BooleanExpression predicate = QEvent.event.isNotNull();
-        selectPredicate(predicate, paramSearch);
+        predicate = selectPredicate(predicate, paramSearch);
         Sort sort = Sort.by(Sort.Direction.ASC, "id");
         Pageable pr = PageRequest.of(paramSearch.getFrom() / paramSearch.getSize(), paramSearch.getSize(), sort);
         List<Event> events = eventRepository.findAll(predicate, pr).stream().toList();
@@ -267,10 +267,11 @@ public class EventsServiceImpl implements EventsService {
         List<ViewStatsResponseDto> viewStats = statClient.getViewStats(events.get(0).getCreatedOn(), events.get(events.size() - 1).getEventDate(), uris, unique);
         List<EventFullDto> result = new ArrayList<>();
         mappingListEventToListFullDto(events, result, listConfirmedRequests, viewStats);
+        log.debug("<== Find all events result {}", result);
         return result;
     }
 
-    private void selectPredicate(BooleanExpression predicate, AdminParamEvent paramSearch) {
+    private BooleanExpression selectPredicate(BooleanExpression predicate, AdminParamEvent paramSearch) {
         if (paramSearch.getUsers() != null && !paramSearch.getUsers().isEmpty()) {
             predicate = predicate.and(QEvent.event.initiator.id.in(paramSearch.getUsers()));
         }
@@ -286,6 +287,7 @@ public class EventsServiceImpl implements EventsService {
         if (paramSearch.getRangeEnd() != null) {
             predicate = predicate.and(QEvent.event.eventDate.loe(paramSearch.getRangeEnd()));
         }
+        return predicate;
     }
 
     private void mappingListEventToListFullDto(List<Event> events, List<EventFullDto> result, List<Integer> listConfirmedRequests, List<ViewStatsResponseDto> viewStats) {
@@ -296,6 +298,7 @@ public class EventsServiceImpl implements EventsService {
         }
     }
 
+    @Transactional
     @Override
     public EventFullDto update(Long eventId, UpdateEventAdminRequest requestBody) {
         log.debug("==> Update event {} and eventId {}", requestBody, eventId);
@@ -351,7 +354,7 @@ public class EventsServiceImpl implements EventsService {
             if (requestBody.getStateAction().equals(StateActionAdmin.REJECT_EVENT)) {
                 model.setState(StateOfPublication.CANCELED);
             } else {
-                model.setState(StateOfPublication.PENDING);
+                model.setState(StateOfPublication.PUBLISHED);
                 model.setPublishedOn(LocalDateTime.now());
             }
         }

@@ -50,9 +50,9 @@ public class MainServiceHandlerController {
         return apiError;
     }
 
-    @ExceptionHandler({EventModificationException.class, RequestModificationException.class})
+    @ExceptionHandler({EventModificationException.class, RequestModificationException.class, DataIntegrityViolationException.class})
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ApiError handleUserAlreadyExist(DataIntegrityViolationException e) {
+    public ApiError handleUserAlreadyExist(RuntimeException e) {
         log.info("409 {}", e.getMessage(), e);
         e.printStackTrace(pw);
         ApiError apiError = new ApiError();

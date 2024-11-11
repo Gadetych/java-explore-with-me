@@ -36,6 +36,8 @@ public class AdminEventsController {
                                       @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeEnd,
                                       @RequestParam(name = "from", required = false) int from,
                                       @RequestParam(name = "size", required = false) int size) {
+        log.info("==> Find all events users: {}, states: {}, categories: {}, rangeStart: {}, rangeEnd: {}, from: {}, size: {}",
+                users, states, categories, rangeStart, rangeEnd, from, size);
         return service.findAll(AdminParamEvent.builder()
                 .users(users)
                 .states(states)
@@ -50,6 +52,7 @@ public class AdminEventsController {
     @PatchMapping("/{eventId}")
     public EventFullDto update(@PathVariable("eventId") Long eventId,
                                @RequestBody UpdateEventAdminRequest requestBody) {
+        log.info("==> Update eventId: {}, requestBody: {}", eventId, requestBody);
         return service.update(eventId, requestBody);
     }
 }

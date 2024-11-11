@@ -37,7 +37,6 @@ CREATE TABLE IF NOT EXISTS events
     location_id        BIGINT                              NOT NULL,
     paid               BOOLEAN DEFAULT (false),
     participant_limit  INTEGER DEFAULT (0),
--- FIXME     current_number_participants INTEGER DEFAULT (0),
     request_moderation BOOLEAN DEFAULT (true),
     state              VARCHAR(10)                         NOT NULL,
     title              VARCHAR(120) UNIQUE                 NOT NULL,
@@ -49,7 +48,6 @@ CREATE TABLE IF NOT EXISTS events
     CONSTRAINT fk_initiator_id_events FOREIGN KEY (initiator_id) REFERENCES users (id),
     CONSTRAINT fk_location_id_events FOREIGN KEY (location_id) REFERENCES locations (id) ON UPDATE CASCADE ON DELETE CASCADE,
     CONSTRAINT state_check CHECK (state IN ('PENDING', 'PUBLISHED', 'CANCELED'))
---  FIXME   CONSTRAINT limit_check CHECK (participant_limit >= events.current_number_participants)
 );
 
 CREATE TABLE IF NOT EXISTS compilations
@@ -81,5 +79,5 @@ CREATE TABLE IF NOT EXISTS requests
     CONSTRAINT pk_requests PRIMARY KEY (id),
     CONSTRAINT fk_event_id_requests FOREIGN KEY (event_id) REFERENCES events (id),
     CONSTRAINT fk_requester_id_requests FOREIGN KEY (requester_id) REFERENCES users (id),
-    CONSTRAINT status_check CHECK (status IN ('PENDING', 'CONFIRMED', 'REJECTED'))
+    CONSTRAINT status_check CHECK (status IN ('PENDING', 'CONFIRMED', 'REJECTED', 'CANCELED'))
 );
