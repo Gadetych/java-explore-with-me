@@ -55,7 +55,7 @@ class PrivateRequestsControllerTest {
     void update_shouldReturnStatusOk() throws Exception {
         long userId = 1L;
         long requestId = 1L;
-        when(service.update(userId, requestId)).thenReturn(new ParticipationRequestDto());
+        when(service.cancelRequest(userId, requestId)).thenReturn(new ParticipationRequestDto());
         mvc.perform(setRequestHeadersWithoutBody(patch(String.format("/users/%d/requests/%d/cancel", userId, requestId)))).andExpect(status().isOk());
     }
 }

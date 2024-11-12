@@ -31,7 +31,6 @@ public class RequestServiceImpl implements RequestService {
     private final RequestRepository requestRepository;
     private final EventRepository eventRepository;
     private final UsersRepository usersRepository;
-//    TODO протестировать
 
     @Transactional(readOnly = true)
     @Override
@@ -79,9 +78,12 @@ public class RequestServiceImpl implements RequestService {
 
     @Transactional
     @Override
-    public ParticipationRequestDto update(long userId, long requestId) {
+    public ParticipationRequestDto cancelRequest(long userId, long requestId) {
         log.debug("==> Update request id {}", requestId);
         Request requestModel = requestRepository.findById(requestId).orElseThrow(() -> new NotFoundException("Request not found by id: " + requestId));
+        if (requestModel.getRequester().getId() != userId) {
+            throw new RequestModificationException("It is not possible to update a request");
+        }
         requestModel.setStatus(StatusParticipationRequest.CANCELED);
         requestModel = requestRepository.save(requestModel);
         log.debug("<== Update request {}", requestModel);
