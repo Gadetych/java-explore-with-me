@@ -7,6 +7,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Sort;
+import ru.practicum.dto.request.ConfirmedRequest;
 import ru.practicum.dto.request.ParticipationRequestDto;
 import ru.practicum.enums.StateOfPublication;
 import ru.practicum.enums.StatusParticipationRequest;
@@ -106,7 +107,7 @@ class RequestServiceImplTest {
         long eventId = event1.getId();
         when(requestRepository.existsByRequesterIdAndEventId(userId, eventId)).thenReturn(false);
         when(eventRepository.findById(eventId)).thenReturn(Optional.of(event1));
-        when(requestRepository.getIdsRequestsByStatus(List.of(eventId), StatusParticipationRequest.CONFIRMED)).thenReturn(List.of());
+        when(requestRepository.getConfirmedRequestsByStatus(List.of(eventId), StatusParticipationRequest.CONFIRMED)).thenReturn(List.of());
         when(usersRepository.findById(userId)).thenReturn(Optional.of(user1));
         when(requestRepository.save(any(Request.class))).thenReturn(request1);
         ParticipationRequestDto result = requestService.create(userId, eventId);
@@ -151,7 +152,7 @@ class RequestServiceImplTest {
         event1.setParticipantLimit(1);
         when(requestRepository.existsByRequesterIdAndEventId(userId, eventId)).thenReturn(false);
         when(eventRepository.findById(eventId)).thenReturn(Optional.of(event1));
-        when(requestRepository.getIdsRequestsByStatus(List.of(eventId), StatusParticipationRequest.CONFIRMED)).thenReturn(List.of(1));
+        when(requestRepository.getConfirmedRequestsByStatus(List.of(eventId), StatusParticipationRequest.CONFIRMED)).thenReturn(List.of(new ConfirmedRequest(eventId, 1L)));
 
         assertThrows(RequestModificationException.class, () -> requestService.create(userId, eventId));
     }

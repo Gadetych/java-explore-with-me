@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.dto.request.ConfirmedRequest;
 import ru.practicum.dto.request.ParticipationRequestDto;
 import ru.practicum.enums.StateOfPublication;
 import ru.practicum.enums.StatusParticipationRequest;
@@ -59,8 +60,8 @@ public class RequestServiceImpl implements RequestService {
         if (!eventModel.getState().equals(StateOfPublication.PUBLISHED)) {
             throw new RequestModificationException("The event is not published");
         }
-        List<Integer> listConfirmedRequests = requestRepository.getIdsRequestsByStatus(List.of(eventId), StatusParticipationRequest.CONFIRMED);
-        int confirmedRequest = listConfirmedRequests.isEmpty() ? 0 : listConfirmedRequests.get(0);
+        List<ConfirmedRequest> listConfirmedRequests = requestRepository.getConfirmedRequestsByStatus(List.of(eventId), StatusParticipationRequest.CONFIRMED);
+        long confirmedRequest = listConfirmedRequests.isEmpty() ? 0 : listConfirmedRequests.get(0).getConfirmedCountRequests();
         if (eventModel.getParticipantLimit() <= confirmedRequest) {
             throw new RequestModificationException("The event has reached the limit of requests for participation");
         }

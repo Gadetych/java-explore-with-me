@@ -9,11 +9,14 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.event.AdminParamEvent;
+import ru.practicum.dto.event.BaseUpdateEventRequest;
 import ru.practicum.dto.event.EventFullDto;
 import ru.practicum.dto.event.EventShortDto;
 import ru.practicum.dto.event.NewEventDto;
+import ru.practicum.dto.event.PublicParamEvent;
 import ru.practicum.dto.event.UpdateEventAdminRequest;
 import ru.practicum.dto.event.UpdateEventUserRequest;
+import ru.practicum.dto.request.ConfirmedRequest;
 import ru.practicum.dto.request.EventRequestStatusUpdateRequest;
 import ru.practicum.dto.request.EventRequestStatusUpdateResult;
 import ru.practicum.dto.request.ParticipationRequestDto;
@@ -42,8 +45,11 @@ import ru.practicum.repository.UsersRepository;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -60,35 +66,63 @@ public class EventsServiceImpl implements EventsService {
     @Override
     public List<EventShortDto> findAll(long userId, int from, int size) {
         log.debug("==> Find all events for userId {}, from {}, size {} ", userId, from, size);
-        List<Event> events = eventRepository.findAllLimitOrderByCreated(userId, from, size);
-        if (events.isEmpty()) {
-            return Collections.emptyList();
-        }
-        List<Long> eventIds = new ArrayList<>();
-        List<String> uris = new ArrayList<>();
-        collectEventIdsAndUris(events, eventIds, uris);
-        List<Integer> listConfirmedRequests = requestRepository.getIdsRequestsByStatus(eventIds, StatusParticipationRequest.CONFIRMED);
-        boolean unique = false;
-        List<ViewStatsResponseDto> viewStats = statClient.getViewStats(events.get(0).getCreatedOn(), events.get(events.size() - 1).getEventDate(), uris, unique);
-        List<EventShortDto> result = new ArrayList<>();
-        mappingListEventToListShortDto(events, result, listConfirmedRequests, viewStats);
+        BooleanExpression predicate = QEvent.event.initiator.id.eq(userId);
+        List<Event> events = getEvents(predicate, from, size);
+        List<EventShortDto> result = getEventsShortDto(events);
         log.debug("<== Find all events short dto {} ", result);
         return result;
     }
 
-    private void collectEventIdsAndUris(List<Event> events, List<Long> eventIds, List<String> uris) {
-        for (Event event : events) {
-            eventIds.add(event.getId());
-            uris.add("/events/" + event.getId());
-        }
+    private List<Event> getEvents(BooleanExpression predicate, int from, int size) {
+        Sort sort = Sort.by(Sort.Direction.ASC, "id");
+        Pageable pageRequest = PageRequest.of(from / size, size, sort);
+        return eventRepository.findAll(predicate, pageRequest).toList();
     }
 
-    private void mappingListEventToListShortDto(List<Event> events, List<EventShortDto> result, List<Integer> listConfirmedRequests, List<ViewStatsResponseDto> viewStats) {
-        for (int i = 0; i < events.size(); i++) {
-            int confirmedRequest = listConfirmedRequests.isEmpty() ? 0 : listConfirmedRequests.get(i);
-            long views = viewStats.isEmpty() ? 0 : viewStats.get(i).getHits();
-            result.add(EventMapper.modelToShortDto(events.get(i), confirmedRequest, views));
+    private List<EventShortDto> getEventsShortDto(List<Event> events) {
+        if (events.isEmpty()) {
+            return Collections.emptyList();
         }
+        LocalDateTime earliestDate = LocalDateTime.MAX;
+        LocalDateTime distantDate = LocalDateTime.MIN;
+        Map<Long, String> eventUriMap = new HashMap<>();
+        for (Event event : events) {
+            eventUriMap.put(event.getId(), "/events/" + event.getId());
+            if (earliestDate.isAfter(event.getEventDate())) {
+                earliestDate = event.getEventDate();
+            }
+            if (distantDate.isBefore(event.getEventDate())) {
+                distantDate = event.getEventDate();
+            }
+        }
+        Map<Long, Long> confirmedRequestsMap = getConfirmedRequestsMap(new ArrayList<>(eventUriMap.keySet()));
+        Map<String, Long> viewsMap = getViewsMap(new ArrayList<>(eventUriMap.values()), earliestDate, distantDate);
+        List<EventShortDto> result = new ArrayList<>();
+        for (Event event : events) {
+            long confirmedRequest = confirmedRequestsMap.getOrDefault(event.getId(), 0L);
+            long views = viewsMap.getOrDefault("/events/" + event.getId(), 0L);
+            result.add(EventMapper.modelToShortDto(event, confirmedRequest, views));
+        }
+        return result;
+    }
+
+    private Map<Long, Long> getConfirmedRequestsMap(List<Long> eventIds) {
+        List<ConfirmedRequest> listConfirmedRequests = requestRepository.getConfirmedRequestsByStatus(eventIds, StatusParticipationRequest.CONFIRMED);
+        Map<Long, Long> confirmedRequestsMap = new HashMap<>();
+        for (ConfirmedRequest request : listConfirmedRequests) {
+            confirmedRequestsMap.put(request.getEventId(), request.getConfirmedCountRequests());
+        }
+        return confirmedRequestsMap;
+    }
+
+    private Map<String, Long> getViewsMap(List<String> uris, LocalDateTime earliestDate, LocalDateTime distantDate) {
+        boolean unique = false;
+        List<ViewStatsResponseDto> viewStats = statClient.getViewStats(earliestDate, distantDate, uris, unique);
+        Map<String, Long> viewsMap = new HashMap<>();
+        for (ViewStatsResponseDto stat : viewStats) {
+            viewsMap.put(stat.getUri(), stat.getHits());
+        }
+        return viewsMap;
     }
 
     @Transactional
@@ -100,8 +134,7 @@ public class EventsServiceImpl implements EventsService {
         Event model = EventMapper.newEventDtoToModel(requestBody, category, user);
         long eventId = eventRepository.save(model).getId();
         model = eventRepository.findById(eventId).orElseThrow(() -> new NotFoundException("Event not found by id: " + eventId));
-//        Эти параметры должны быть 0 при создании события
-        int confirmedRequests = 0;
+        long confirmedRequests = 0L;
         long views = 0;
         log.debug("<== Create new event {} for userId {}", model, userId + "");
         return EventMapper.modelToFullDto(model, confirmedRequests, views);
@@ -109,38 +142,50 @@ public class EventsServiceImpl implements EventsService {
 
     @Override
     public EventFullDto findById(long userId, long eventId) {
-        log.debug("==> Find event {} for userId {}", eventId, userId);
+        log.debug("==> User finds his event: eventId {} for userId {}", eventId, userId);
         Event model = eventRepository.findByInitiatorIdAndId(userId, eventId).orElseThrow(() -> new NotFoundException("Event not found by id: " + eventId));
-        List<Integer> listConfirmedRequests = requestRepository.getIdsRequestsByStatus(List.of(eventId), StatusParticipationRequest.CONFIRMED);
-        int confirmedRequests = listConfirmedRequests.isEmpty() ? 0 : listConfirmedRequests.getFirst();
-        String uri = "/events/" + eventId;
-        boolean unique = false;
-        List<ViewStatsResponseDto> listViewStats = statClient.getViewStats(model.getCreatedOn(), model.getEventDate(), List.of(uri), unique);
-        long views = listViewStats.isEmpty() ? 0 : listViewStats.get(0).getHits();
-        log.debug("<== Find event {} for userId {}", model, userId + "");
-        return EventMapper.modelToFullDto(model, confirmedRequests, views);
+        long confirmedRequests = getConfirmedRequests(eventId);
+        long views = getViews(eventId, model);
+//        todo удалить
+//        List<ConfirmedRequest> listConfirmedRequests = requestRepository.getConfirmedRequestsByStatus(List.of(eventId), StatusParticipationRequest.CONFIRMED);
+//        long confirmedRequests = listConfirmedRequests.isEmpty() ? 0 : listConfirmedRequests.getFirst().getConfirmedCountRequests();
+//        String uri = "/events/" + eventId;
+//        boolean unique = false;
+//        List<ViewStatsResponseDto> listViewStats = statClient.getViewStats(model.getCreatedOn(), model.getEventDate(), List.of(uri), unique);
+//        long views = listViewStats.isEmpty() ? 0 : listViewStats.getFirst().getHits();
+        EventFullDto result = EventMapper.modelToFullDto(model, confirmedRequests, views);
+        log.debug("<== User finds his event: result {}", result);
+        return result;
     }
 
     @Transactional
     @Override
     public EventFullDto update(long userId, long eventId, UpdateEventUserRequest requestBody) {
-        log.debug("==> Update event {} for userId {} adn eventId {}", requestBody, userId, eventId);
-        Event model = eventRepository.findById(eventId).orElseThrow(() -> new NotFoundException("Event not found by id: " + eventId));
-        makeChangesEventParams(model, requestBody);
-        model = eventRepository.save(model);
-        List<Integer> listConfirmedRequests = requestRepository.getIdsRequestsByStatus(List.of(eventId), StatusParticipationRequest.CONFIRMED);
-        int confirmedRequests = listConfirmedRequests.isEmpty() ? 0 : listConfirmedRequests.getFirst();
-        String uri = "/events/" + eventId;
-        boolean unique = false;
-        List<Long> listViews = statClient.getViewStats(model.getCreatedOn(), model.getEventDate(), List.of(uri), unique).stream()
-                .map(ViewStatsResponseDto::getHits)
-                .toList();
-        long views = listViews.isEmpty() ? 0 : listViews.get(0);
-        log.debug("<=== Update event model {} confirmed requests {}, views {}", model, confirmedRequests, views);
+        log.debug("==> User update of the event: request body {} for userId {} adn eventId {}", requestBody, userId, eventId);
+        Event model = changeEventByUser(eventId, requestBody);
+        EventFullDto result = getDataForMapping(model);
+        log.debug("<=== User update of the event: result {}", result);
+        return result;
+    }
+
+    private EventFullDto getDataForMapping(Event model) {
+        long eventId = model.getId();
+        long confirmedRequests = getConfirmedRequests(eventId);
+        long views = getViews(eventId, model);
         return EventMapper.modelToFullDto(model, confirmedRequests, views);
     }
 
-    private void makeChangesEventParams(Event model, UpdateEventUserRequest requestBody) {
+    private Event changeEventByUser(long eventId, UpdateEventUserRequest requestBody) {
+        Event model = makeChangesEventParams(eventId, requestBody);
+        if (requestBody.getStateAction() != null) {
+            model.setState(requestBody.getStateAction().equals(StateActionUser.CANCEL_REVIEW) ? StateOfPublication.CANCELED : StateOfPublication.PUBLISHED);
+        }
+        model = eventRepository.save(model);
+        return model;
+    }
+
+    private Event makeChangesEventParams(long eventId, BaseUpdateEventRequest requestBody) {
+        Event model = eventRepository.findById(eventId).orElseThrow(() -> new NotFoundException("Event not found by id: " + eventId));
         if (model.getState().equals(StateOfPublication.PUBLISHED)) {
             throw new EventModificationException("Only pending or canceled events can be changed");
         }
@@ -173,12 +218,24 @@ public class EventsServiceImpl implements EventsService {
         if (requestBody.getRequestModeration() != null) {
             model.setRequestModeration(requestBody.getRequestModeration());
         }
-        if (requestBody.getStateAction() != null) {
-            model.setState(requestBody.getStateAction().equals(StateActionUser.CANCEL_REVIEW) ? StateOfPublication.CANCELED : StateOfPublication.PUBLISHED);
-        }
         if (requestBody.getTitle() != null) {
             model.setTitle(requestBody.getTitle());
         }
+        return model;
+    }
+
+    private long getConfirmedRequests(long eventId) {
+        List<ConfirmedRequest> listConfirmedRequests = requestRepository.getConfirmedRequestsByStatus(List.of(eventId), StatusParticipationRequest.CONFIRMED);
+        return listConfirmedRequests.isEmpty() ? 0 : listConfirmedRequests.getFirst().getConfirmedCountRequests();
+    }
+
+    private long getViews(long eventId, Event model) {
+        String uri = "/events/" + eventId;
+        boolean unique = false;
+        List<Long> listViews = statClient.getViewStats(model.getCreatedOn(), model.getEventDate(), List.of(uri), unique).stream()
+                .map(ViewStatsResponseDto::getHits)
+                .toList();
+        return listViews.isEmpty() ? 0 : listViews.getFirst();
     }
 
     @Override
@@ -196,8 +253,8 @@ public class EventsServiceImpl implements EventsService {
     public EventRequestStatusUpdateResult updateStatusRequest(long userId, long eventId, EventRequestStatusUpdateRequest requestBody) {
         log.debug("==> Update status request {} for eventId {}, userId {}", requestBody, eventId, userId);
         Event eventModel = eventRepository.findById(eventId).orElseThrow(() -> new NotFoundException("Event not found by id: " + eventId));
-        List<Integer> listConfirmedRequests = requestRepository.getIdsRequestsByStatus(List.of(eventId), StatusParticipationRequest.CONFIRMED);
-        int numberConfirmedRequests = listConfirmedRequests.isEmpty() ? 0 : listConfirmedRequests.getFirst();
+        List<ConfirmedRequest> listConfirmedRequests = requestRepository.getConfirmedRequestsByStatus(List.of(eventId), StatusParticipationRequest.CONFIRMED);
+        long numberConfirmedRequests = listConfirmedRequests.isEmpty() ? 0 : listConfirmedRequests.getFirst().getConfirmedCountRequests();
         if (eventModel.getParticipantLimit() <= numberConfirmedRequests) {
             throw new RequestModificationException("The participant limit has been reached");
         }
@@ -212,7 +269,7 @@ public class EventsServiceImpl implements EventsService {
                 .build();
     }
 
-    private void changeStatusRequests(long eventId, EventRequestStatusUpdateRequest requestBody, Event eventModel, int numberConfirmedRequests) {
+    private void changeStatusRequests(long eventId, EventRequestStatusUpdateRequest requestBody, Event eventModel, long numberConfirmedRequests) {
         StatusParticipationRequest newStatus = requestBody.getStatus();
         List<Long> requestIds = requestBody.getRequestIds();
         List<Request> requestsForUpdateStatus = requestRepository.findAllByIdIn(requestIds);
@@ -253,25 +310,16 @@ public class EventsServiceImpl implements EventsService {
     //    Admin
     @Override
     public List<EventFullDto> findAll(AdminParamEvent paramSearch) {
-        log.debug("==> Find all events parameters {}", paramSearch);
-        BooleanExpression predicate = QEvent.event.isNotNull();
-        predicate = selectPredicate(predicate, paramSearch);
-        Sort sort = Sort.by(Sort.Direction.ASC, "id");
-        Pageable pr = PageRequest.of(paramSearch.getFrom() / paramSearch.getSize(), paramSearch.getSize(), sort);
-        List<Event> events = eventRepository.findAll(predicate, pr).stream().toList();
-        List<Long> eventIds = new ArrayList<>();
-        List<String> uris = new ArrayList<>();
-        collectEventIdsAndUris(events, eventIds, uris);
-        List<Integer> listConfirmedRequests = requestRepository.getIdsRequestsByStatus(eventIds, StatusParticipationRequest.CONFIRMED);
-        boolean unique = false;
-        List<ViewStatsResponseDto> viewStats = statClient.getViewStats(events.get(0).getCreatedOn(), events.get(events.size() - 1).getEventDate(), uris, unique);
-        List<EventFullDto> result = new ArrayList<>();
-        mappingListEventToListFullDto(events, result, listConfirmedRequests, viewStats);
+        log.debug("==> Find all events paramSearch {}", paramSearch);
+        BooleanExpression predicate = selectPredicate(paramSearch);
+        List<Event> events = getEvents(predicate, paramSearch.getFrom(), paramSearch.getSize());
+        List<EventFullDto> result = getEventsFullDto(events);
         log.debug("<== Find all events result {}", result);
         return result;
     }
 
-    private BooleanExpression selectPredicate(BooleanExpression predicate, AdminParamEvent paramSearch) {
+    private BooleanExpression selectPredicate(AdminParamEvent paramSearch) {
+        BooleanExpression predicate = QEvent.event.isNotNull();
         if (paramSearch.getUsers() != null && !paramSearch.getUsers().isEmpty()) {
             predicate = predicate.and(QEvent.event.initiator.id.in(paramSearch.getUsers()));
         }
@@ -290,66 +338,45 @@ public class EventsServiceImpl implements EventsService {
         return predicate;
     }
 
-    private void mappingListEventToListFullDto(List<Event> events, List<EventFullDto> result, List<Integer> listConfirmedRequests, List<ViewStatsResponseDto> viewStats) {
-        for (int i = 0; i < events.size(); i++) {
-            int confirmedRequest = listConfirmedRequests.isEmpty() ? 0 : listConfirmedRequests.get(i);
-            long views = viewStats.isEmpty() ? 0 : viewStats.get(i).getHits();
-            result.add(EventMapper.modelToFullDto(events.get(i), confirmedRequest, views));
+    private List<EventFullDto> getEventsFullDto(List<Event> events) {
+        if (events.isEmpty()) {
+            return Collections.emptyList();
         }
+        LocalDateTime earliestDate = LocalDateTime.MAX;
+        LocalDateTime distantDate = LocalDateTime.MIN;
+        Map<Long, String> eventUriMap = new HashMap<>();
+        for (Event event : events) {
+            eventUriMap.put(event.getId(), "/events/" + event.getId());
+            if (earliestDate.isAfter(event.getEventDate())) {
+                earliestDate = event.getEventDate();
+            }
+            if (distantDate.isBefore(event.getEventDate())) {
+                distantDate = event.getEventDate();
+            }
+        }
+        Map<Long, Long> confirmedRequestsMap = getConfirmedRequestsMap(new ArrayList<>(eventUriMap.keySet()));
+        Map<String, Long> viewsMap = getViewsMap(new ArrayList<>(eventUriMap.values()), earliestDate, distantDate);
+        List<EventFullDto> result = new ArrayList<>();
+        for (Event event : events) {
+            long confirmedRequest = confirmedRequestsMap.getOrDefault(event.getId(), 0L);
+            long views = viewsMap.getOrDefault("/events/" + event.getId(), 0L);
+            result.add(EventMapper.modelToFullDto(event, confirmedRequest, views));
+        }
+        return result;
     }
 
     @Transactional
     @Override
     public EventFullDto update(Long eventId, UpdateEventAdminRequest requestBody) {
-        log.debug("==> Update event {} and eventId {}", requestBody, eventId);
-        Event model = eventRepository.findById(eventId).orElseThrow(() -> new NotFoundException("Event not found by id: " + eventId));
-        makeChangesEventParams(model, requestBody);
-        model = eventRepository.save(model);
-        List<Integer> listConfirmedRequests = requestRepository.getIdsRequestsByStatus(List.of(eventId), StatusParticipationRequest.CONFIRMED);
-        int confirmedRequests = listConfirmedRequests.isEmpty() ? 0 : listConfirmedRequests.getFirst();
-        String uri = "/events/" + eventId;
-        boolean unique = false;
-        List<Long> listViews = statClient.getViewStats(model.getCreatedOn(), model.getEventDate(), List.of(uri), unique).stream()
-                .map(ViewStatsResponseDto::getHits)
-                .toList();
-        long views = listViews.isEmpty() ? 0 : listViews.get(0);
-        log.debug("<=== Update event model {} confirmed requests {}, views {}", model, confirmedRequests, views);
-        return EventMapper.modelToFullDto(model, confirmedRequests, views);
+        log.debug("==> Admin update of the event: request body {}, eventId {}", requestBody, eventId);
+        Event model = changeEventByAdmin(eventId, requestBody);
+        EventFullDto result = getDataForMapping(model);
+        log.debug("<=== Admin update of the event: result {}", result);
+        return result;
     }
 
-    private void makeChangesEventParams(Event model, UpdateEventAdminRequest requestBody) {
-        if (!model.getState().equals(StateOfPublication.PENDING)) {
-            throw new EventModificationException("Only pending or canceled events can be changed");
-        }
-        if (requestBody.getCategory() != null) {
-            Category category = categoriesRepository.findById(requestBody.getCategory()).orElseThrow(() -> new NotFoundException("Category not found by id=" + requestBody.getCategory()));
-            model.setCategory(category);
-        }
-        if (requestBody.getAnnotation() != null) {
-            model.setAnnotation(requestBody.getAnnotation());
-        }
-        if (requestBody.getDescription() != null) {
-            model.setDescription(requestBody.getDescription());
-        }
-        if (requestBody.getEventDate() != null) {
-            if (requestBody.getEventDate().isAfter(LocalDateTime.now().plusHours(1))) {
-                model.setEventDate(requestBody.getEventDate());
-            } else {
-                throw new EventModificationException("The date and time on which the event is scheduled cannot be earlier than two hours from the current moment.");
-            }
-        }
-        if (requestBody.getLocation() != null) {
-            model.setLocation(LocationMapper.dtoToModel(requestBody.getLocation()));
-        }
-        if (requestBody.getPaid() != null) {
-            model.setPaid(requestBody.getPaid());
-        }
-        if (requestBody.getParticipantLimit() != null) {
-            model.setParticipantLimit(requestBody.getParticipantLimit());
-        }
-        if (requestBody.getRequestModeration() != null) {
-            model.setRequestModeration(requestBody.getRequestModeration());
-        }
+    private Event changeEventByAdmin(long eventId, UpdateEventAdminRequest requestBody) {
+        Event model = makeChangesEventParams(eventId, requestBody);
         if (requestBody.getStateAction() != null) {
             if (requestBody.getStateAction().equals(StateActionAdmin.REJECT_EVENT)) {
                 model.setState(StateOfPublication.CANCELED);
@@ -358,9 +385,66 @@ public class EventsServiceImpl implements EventsService {
                 model.setPublishedOn(LocalDateTime.now());
             }
         }
-        if (requestBody.getTitle() != null) {
-            model.setTitle(requestBody.getTitle());
-        }
+        model = eventRepository.save(model);
+        return model;
     }
 
+    //    Public
+    @Override
+    public List<EventShortDto> findAll(PublicParamEvent paramSearch) {
+        log.debug("==> Find all events, paramSearch {}", paramSearch);
+        BooleanExpression predicate = selectPredicate(paramSearch);
+        List<Event> events = getEvents(predicate, paramSearch.getFrom(), paramSearch.getSize());
+        List<EventShortDto> result = getEventsShortDto(events);
+
+        Comparator<EventShortDto> comparator = switch (paramSearch.getSort()) {
+            case EVENT_DATE -> comparator = Comparator.comparing(EventShortDto::getEventDate);
+            case VIEWS -> comparator = Comparator.comparing(EventShortDto::getViews);
+            default -> comparator = Comparator.comparing(EventShortDto::getId);
+        };
+
+        Stream<EventShortDto> stream = result.stream().sorted(comparator);
+        if (paramSearch.getOnlyAvailable()) {
+            stream = stream.filter((dto) -> dto.getConfirmedRequests() < dto.getParticipantLimit());
+        }
+
+        result = stream.toList();
+        log.debug("<=== Find all events {}", result);
+        return result;
+    }
+
+    private BooleanExpression selectPredicate(PublicParamEvent paramSearch) {
+        QEvent qEvent = QEvent.event;
+        BooleanExpression predicate = qEvent.state.eq(StateOfPublication.PUBLISHED);
+        if (paramSearch.getText() != null) {
+            predicate = predicate.and(qEvent.annotation.likeIgnoreCase(paramSearch.getText())).or(qEvent.description.likeIgnoreCase(paramSearch.getText()));
+        }
+        if (paramSearch.getCategories() != null && !paramSearch.getCategories().isEmpty()) {
+            predicate = predicate.and(qEvent.category.id.in(paramSearch.getCategories()));
+        }
+        if (paramSearch.getPaid() != null) {
+            predicate = predicate.and(qEvent.paid.eq(paramSearch.getPaid()));
+        }
+        if (paramSearch.getRangeStart() != null && paramSearch.getRangeEnd() != null) {
+            predicate = predicate.and(qEvent.eventDate.between(paramSearch.getRangeStart(), paramSearch.getRangeEnd()));
+        } else {
+            predicate = predicate.and(qEvent.eventDate.after(LocalDateTime.now()));
+        }
+        return predicate;
+    }
+
+    @Override
+    public EventFullDto findById(Long eventId) {
+        log.debug("==> Find the event: eventId {}", eventId);
+        Event model = eventRepository.findById(eventId).orElseThrow(() -> new NotFoundException("Event not found by id: " + eventId));
+        if (!model.getState().equals(StateOfPublication.PUBLISHED)) {
+            throw new NotFoundException("Event is not published");
+        }
+        long confirmedRequests = getConfirmedRequests(eventId);
+        long views = getViews(eventId, model);
+
+        EventFullDto result = EventMapper.modelToFullDto(model, confirmedRequests, views);
+        log.debug("<== Find the event: result {}", result);
+        return null;
+    }
 }

@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 public class EventShortDto {
     private String annotation;
     private CategoryDto category;
-    private int confirmedRequests;
+    private long confirmedRequests;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", shape = JsonFormat.Shape.STRING)
     private LocalDateTime eventDate;
     private Long id;
@@ -25,4 +25,5 @@ public class EventShortDto {
     private boolean paid;
     private String title;
     private long views;
+    private int participantLimit;
 }

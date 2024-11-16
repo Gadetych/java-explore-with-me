@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 
 @UtilityClass
 public class EventMapper {
-    public EventShortDto modelToShortDto(Event model, int confirmedRequests, long views) {
+    public EventShortDto modelToShortDto(Event model, long confirmedRequests, long views) {
         return EventShortDto.builder()
                 .id(model.getId())
                 .annotation(model.getAnnotation())
@@ -23,6 +23,7 @@ public class EventMapper {
                 .paid(model.isPaid())
                 .title(model.getTitle())
                 .views(views)
+                .participantLimit(model.getParticipantLimit())
                 .build();
     }
 
@@ -44,7 +45,7 @@ public class EventMapper {
                 .build();
     }
 
-    public static EventFullDto modelToFullDto(Event model, int confirmedRequests, long views) {
+    public static EventFullDto modelToFullDto(Event model, long confirmedRequests, long views) {
         return EventFullDto.builder()
                 .id(model.getId())
                 .annotation(model.getAnnotation())

@@ -1,15 +1,22 @@
 package ru.practicum.service;
 
+import com.querydsl.core.types.dsl.BooleanExpression;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import ru.practicum.dto.event.EventFullDto;
 import ru.practicum.dto.event.EventShortDto;
 import ru.practicum.dto.event.NewEventDto;
 import ru.practicum.dto.event.UpdateEventUserRequest;
 import ru.practicum.dto.location.LocationDto;
+import ru.practicum.dto.request.ConfirmedRequest;
 import ru.practicum.enums.StateActionUser;
 import ru.practicum.enums.StateOfPublication;
 import ru.practicum.enums.StatusParticipationRequest;
@@ -112,10 +119,23 @@ class EventsServiceImplTest {
         long userId = 1;
         int from = 0;
         int size = 2;
-        when(eventRepository.findAllLimitOrderByCreated(userId, from, size)).thenReturn(List.of(event1, event2));
-        int confirmedRequests1 = 1;
-        int confirmedRequests2 = 2;
-        when(requestRepository.getIdsRequestsByStatus(List.of(event1.getId(), event2.getId()), StatusParticipationRequest.CONFIRMED)).thenReturn(List.of(confirmedRequests1, confirmedRequests2));
+        List<Event> events = List.of(event1, event2);
+        Sort sort = Sort.by(Sort.Direction.ASC, "id");
+        Pageable pageRequest = PageRequest.of(from / size, size, sort);
+
+        Page<Event> eventPage = new PageImpl<>(events, pageRequest, events.size());
+        when(eventRepository.findAll(any(BooleanExpression.class), any(PageRequest.class))).thenReturn(eventPage);
+        long confirmedRequests1 = 1;
+        long confirmedRequests2 = 2;
+        ConfirmedRequest confirmedRequest1 = ConfirmedRequest.builder()
+                .eventId(event1.getId())
+                .confirmedCountRequests(confirmedRequests1)
+                .build();
+        ConfirmedRequest confirmedRequest2 = ConfirmedRequest.builder()
+                .eventId(event2.getId())
+                .confirmedCountRequests(confirmedRequests2)
+                .build();
+        when(requestRepository.getConfirmedRequestsByStatus(List.of(event1.getId(), event2.getId()), StatusParticipationRequest.CONFIRMED)).thenReturn(List.of(confirmedRequest1, confirmedRequest2));
         ViewStatsResponseDto viewDto1 = ViewStatsResponseDto.builder()
                 .app("event")
                 .hits(5)
@@ -202,7 +222,7 @@ class EventsServiceImplTest {
         long eventId = event1.getId();
         boolean unique = false;
         when(eventRepository.findByInitiatorIdAndId(userId, eventId)).thenReturn(Optional.ofNullable(event1));
-        when(requestRepository.getIdsRequestsByStatus(List.of(eventId), StatusParticipationRequest.CONFIRMED)).thenReturn(List.of(1));
+        when(requestRepository.getConfirmedRequestsByStatus(List.of(eventId), StatusParticipationRequest.CONFIRMED)).thenReturn(List.of(new ConfirmedRequest(eventId, 1L)));
         when(statClient.getViewStats(event1.getCreatedOn(), event1.getEventDate(), List.of("/events/" + eventId), unique)).thenReturn(List.of());
         EventFullDto fullDto = service.findById(userId, eventId);
 
@@ -230,7 +250,7 @@ class EventsServiceImplTest {
                 .build();
         when(eventRepository.findById(eventId)).thenReturn(Optional.ofNullable(event1));
         when(eventRepository.save(any(Event.class))).thenReturn(event1);
-        when(requestRepository.getIdsRequestsByStatus(List.of(eventId), StatusParticipationRequest.CONFIRMED)).thenReturn(List.of(1));
+        when(requestRepository.getConfirmedRequestsByStatus(List.of(eventId), StatusParticipationRequest.CONFIRMED)).thenReturn(List.of(new ConfirmedRequest(eventId, 1L)));
         when(statClient.getViewStats(event1.getCreatedOn(), event1.getEventDate(), List.of("/events/" + eventId), unique)).thenReturn(List.of());
         EventFullDto fullDto = service.update(userId, eventId, updateEventUserRequest);
 

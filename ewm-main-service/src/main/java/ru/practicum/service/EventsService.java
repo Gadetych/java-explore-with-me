@@ -4,6 +4,7 @@ import ru.practicum.dto.event.AdminParamEvent;
 import ru.practicum.dto.event.EventFullDto;
 import ru.practicum.dto.event.EventShortDto;
 import ru.practicum.dto.event.NewEventDto;
+import ru.practicum.dto.event.PublicParamEvent;
 import ru.practicum.dto.event.UpdateEventAdminRequest;
 import ru.practicum.dto.event.UpdateEventUserRequest;
 import ru.practicum.dto.request.EventRequestStatusUpdateRequest;
@@ -28,4 +29,8 @@ public interface EventsService {
     List<EventFullDto> findAll(AdminParamEvent build);
 
     EventFullDto update(Long eventId, UpdateEventAdminRequest requestBody);
+
+    List<EventShortDto> findAll(PublicParamEvent build);
+
+    EventFullDto findById(Long id);
 }
