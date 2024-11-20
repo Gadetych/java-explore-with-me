@@ -28,6 +28,8 @@ public interface EventsService {
 
     List<EventFullDto> findAll(AdminParamEvent build);
 
+    List<EventFullDto> findAllById(List<Long> eventIds);
+
     EventFullDto update(Long eventId, UpdateEventAdminRequest requestBody);
 
     List<EventShortDto> findAll(PublicParamEvent build);

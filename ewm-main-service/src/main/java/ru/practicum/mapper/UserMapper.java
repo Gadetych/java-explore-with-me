@@ -29,4 +29,11 @@ public class UserMapper {
                 .name(model.getName())
                 .build();
     }
+
+    public User shortDtoToModel(UserShortDto model) {
+        return User.builder()
+                .id(model.getId())
+                .name(model.getName())
+                .build();
+    }
 }

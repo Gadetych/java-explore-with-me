@@ -146,13 +146,6 @@ public class EventsServiceImpl implements EventsService {
         Event model = eventRepository.findByInitiatorIdAndId(userId, eventId).orElseThrow(() -> new NotFoundException("Event not found by id: " + eventId));
         long confirmedRequests = getConfirmedRequests(eventId);
         long views = getViews(eventId, model);
-//        todo удалить
-//        List<ConfirmedRequest> listConfirmedRequests = requestRepository.getConfirmedRequestsByStatus(List.of(eventId), StatusParticipationRequest.CONFIRMED);
-//        long confirmedRequests = listConfirmedRequests.isEmpty() ? 0 : listConfirmedRequests.getFirst().getConfirmedCountRequests();
-//        String uri = "/events/" + eventId;
-//        boolean unique = false;
-//        List<ViewStatsResponseDto> listViewStats = statClient.getViewStats(model.getCreatedOn(), model.getEventDate(), List.of(uri), unique);
-//        long views = listViewStats.isEmpty() ? 0 : listViewStats.getFirst().getHits();
         EventFullDto result = EventMapper.modelToFullDto(model, confirmedRequests, views);
         log.debug("<== User finds his event: result {}", result);
         return result;
@@ -445,6 +438,16 @@ public class EventsServiceImpl implements EventsService {
 
         EventFullDto result = EventMapper.modelToFullDto(model, confirmedRequests, views);
         log.debug("<== Find the event: result {}", result);
-        return null;
+        return result;
     }
+
+    @Override
+    public List<EventFullDto> findAllById(List<Long> eventIds) {
+        log.debug("==> Find all events by id {}", eventIds);
+        List<Event> events = eventRepository.findAllById(eventIds);
+        List<EventFullDto> result = getEventsFullDto(events);
+        log.debug("<== Find all events: {}", result);
+        return result;
+    }
+
 }

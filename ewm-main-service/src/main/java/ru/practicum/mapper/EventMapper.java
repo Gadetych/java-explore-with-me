@@ -45,7 +45,7 @@ public class EventMapper {
                 .build();
     }
 
-    public static EventFullDto modelToFullDto(Event model, long confirmedRequests, long views) {
+    public EventFullDto modelToFullDto(Event model, long confirmedRequests, long views) {
         return EventFullDto.builder()
                 .id(model.getId())
                 .annotation(model.getAnnotation())
@@ -63,6 +63,40 @@ public class EventMapper {
                 .state(model.getState())
                 .title(model.getTitle())
                 .views(views)
+                .build();
+    }
+
+    public Event fullDtoToModel(EventFullDto dto) {
+        return Event.builder()
+                .id(dto.getId())
+                .annotation(dto.getAnnotation())
+                .category(CategoryMapper.dtoToModel(dto.getCategory()))
+                .initiator(UserMapper.shortDtoToModel(dto.getInitiator()))
+                .description(dto.getDescription())
+                .eventDate(dto.getEventDate())
+                .createdOn(dto.getCreatedOn())
+                .publishedOn(dto.getPublishedOn())
+                .location(LocationMapper.dtoToModel(dto.getLocation()))
+                .paid(dto.isPaid())
+                .participantLimit(dto.getParticipantLimit())
+                .requestModeration(dto.isRequestModeration())
+                .state(dto.getState())
+                .title(dto.getTitle())
+                .build();
+    }
+
+    public EventShortDto fullDtoToShortDto(EventFullDto eventFullDto) {
+        return EventShortDto.builder()
+                .id(eventFullDto.getId())
+                .annotation(eventFullDto.getAnnotation())
+                .category(eventFullDto.getCategory())
+                .confirmedRequests(eventFullDto.getConfirmedRequests())
+                .eventDate(eventFullDto.getEventDate())
+                .initiator(eventFullDto.getInitiator())
+                .paid(eventFullDto.isPaid())
+                .title(eventFullDto.getTitle())
+                .views(eventFullDto.getViews())
+                .participantLimit(eventFullDto.getParticipantLimit())
                 .build();
     }
 }

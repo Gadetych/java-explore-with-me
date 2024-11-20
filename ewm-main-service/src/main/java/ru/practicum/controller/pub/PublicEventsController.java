@@ -29,18 +29,18 @@ public class PublicEventsController {
     private final StatClient client;
 
     @GetMapping
-    public List<EventShortDto> getEvents(@RequestParam(value = "text", required = false) String text,
-                                         @RequestParam(value = "categories", required = false) List<Long> categories,
-                                         @RequestParam(value = "paid", required = false) Boolean paid,
-                                         @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-                                         @RequestParam(value = "rangeStart", required = false) LocalDateTime rangeStart,
-                                         @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-                                         @RequestParam(value = "rangeEnd", required = false) LocalDateTime rangeEnd,
-                                         @RequestParam(value = "onlyAvailable", required = false, defaultValue = "false") Boolean onlyAvailable,
-                                         @RequestParam(value = "sort", required = false) SortEvent sort,
-                                         @RequestParam(name = "from", required = false, defaultValue = "0") int from,
-                                         @RequestParam(name = "size", required = false, defaultValue = "10") int size,
-                                         HttpServletRequest httpServletRequest) {
+    public List<EventShortDto> findAll(@RequestParam(value = "text", required = false) String text,
+                                       @RequestParam(value = "categories", required = false) List<Long> categories,
+                                       @RequestParam(value = "paid", required = false) Boolean paid,
+                                       @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+                                       @RequestParam(value = "rangeStart", required = false) LocalDateTime rangeStart,
+                                       @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+                                       @RequestParam(value = "rangeEnd", required = false) LocalDateTime rangeEnd,
+                                       @RequestParam(value = "onlyAvailable", required = false, defaultValue = "false") Boolean onlyAvailable,
+                                       @RequestParam(value = "sort", required = false) SortEvent sort,
+                                       @RequestParam(name = "from", required = false, defaultValue = "0") int from,
+                                       @RequestParam(name = "size", required = false, defaultValue = "10") int size,
+                                       HttpServletRequest httpServletRequest) {
 
         EndpointHitRequestDto endpointHitRequestDto = EndpointHitRequestDto.builder()
                 .app("evm-main-service")
@@ -63,7 +63,7 @@ public class PublicEventsController {
     }
 
     @GetMapping("/{id}")
-    public EventFullDto getEvent(@PathVariable Long id, HttpServletRequest httpServletRequest) {
+    public EventFullDto findById(@PathVariable Long id, HttpServletRequest httpServletRequest) {
         EndpointHitRequestDto endpointHitRequestDto = EndpointHitRequestDto.builder()
                 .app("evm-main-service")
                 .ip(httpServletRequest.getRemoteAddr())

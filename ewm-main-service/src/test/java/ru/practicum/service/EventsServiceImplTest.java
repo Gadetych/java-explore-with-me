@@ -114,8 +114,9 @@ class EventsServiceImplTest {
             .build();
 
 
+    //    Private
     @Test
-    void findAll() {
+    void findAll_shouldReturnTwoEventShortDto() {
         long userId = 1;
         int from = 0;
         int size = 2;
@@ -136,6 +137,7 @@ class EventsServiceImplTest {
                 .confirmedCountRequests(confirmedRequests2)
                 .build();
         when(requestRepository.getConfirmedRequestsByStatus(List.of(event1.getId(), event2.getId()), StatusParticipationRequest.CONFIRMED)).thenReturn(List.of(confirmedRequest1, confirmedRequest2));
+
         ViewStatsResponseDto viewDto1 = ViewStatsResponseDto.builder()
                 .app("event")
                 .hits(5)
@@ -152,6 +154,7 @@ class EventsServiceImplTest {
         List<EventShortDto> result = service.findAll(event1.getInitiator().getId(), from, size);
         assertNotNull(result);
         assertEquals(2, result.size());
+
         EventShortDto shortDto1 = result.get(0);
         assertEquals(shortDto1.getId(), event1.getId());
         assertEquals(shortDto1.getAnnotation(), event1.getAnnotation());
@@ -180,7 +183,7 @@ class EventsServiceImplTest {
     }
 
     @Test
-    void create() {
+    void create_shouldReturnEventFullDtoWithId() {
         long userId = event1.getInitiator().getId();
         NewEventDto requestBody = NewEventDto.builder()
                 .annotation(event1.getAnnotation())
