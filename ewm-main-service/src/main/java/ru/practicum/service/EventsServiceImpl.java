@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.event.AdminParamEvent;
@@ -383,6 +384,7 @@ public class EventsServiceImpl implements EventsService {
     }
 
     //    Public
+    @EntityGraph(attributePaths = {"category", "initiator"})
     @Override
     public List<EventShortDto> findAll(PublicParamEvent paramSearch) {
         log.debug("==> Find all events, paramSearch {}", paramSearch);

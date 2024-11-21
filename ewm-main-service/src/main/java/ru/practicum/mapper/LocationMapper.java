@@ -7,7 +7,9 @@ import ru.practicum.model.Location;
 @UtilityClass
 public class LocationMapper {
     public Location dtoToModel(LocationDto dto) {
+//        todo нужен id
         return Location.builder()
+                .id(dto.getId())
                 .lat(dto.getLat())
                 .lon(dto.getLon())
                 .build();
@@ -15,6 +17,7 @@ public class LocationMapper {
 
     public LocationDto modelToDto(Location location) {
         return LocationDto.builder()
+                .id(location.getId())
                 .lat(location.getLat())
                 .lon(location.getLon())
                 .build();
