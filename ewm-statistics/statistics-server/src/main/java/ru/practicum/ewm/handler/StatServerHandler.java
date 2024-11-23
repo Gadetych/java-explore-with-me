@@ -4,9 +4,11 @@ import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import ru.practicum.ewm.exception.BadRequestException;
 import ru.practicum.ewm.stats.common.dto.ApiError;
 
 import java.io.PrintWriter;
@@ -19,7 +21,7 @@ public class StatServerHandler {
     private final StringWriter sw = new StringWriter();
     private final PrintWriter pw = new PrintWriter(sw);
 
-    @ExceptionHandler({ConstraintViolationException.class, MethodArgumentNotValidException.class})
+    @ExceptionHandler({ConstraintViolationException.class, MethodArgumentNotValidException.class, MissingServletRequestParameterException.class, BadRequestException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError handleBadRequest(RuntimeException e) {
         log.info("400 {}", e.getMessage(), e);
