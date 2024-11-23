@@ -31,6 +31,7 @@ import java.util.List;
 public class PublicEventsController {
     private final EventsService service;
     private final StatClient client;
+    private final String app = "ewm-main-service";
 
     @GetMapping
     public List<EventShortDto> findAll(@RequestParam(value = "text", required = false) String text,
@@ -61,7 +62,7 @@ public class PublicEventsController {
                 .build();
         log.info("==> Find all events with parameters: {}", paramSearch);
         EndpointHitRequestDto endpointHitRequestDto = EndpointHitRequestDto.builder()
-                .app("evm-main-service")
+                .app(app)
                 .ip(httpServletRequest.getRemoteAddr())
                 .uri(httpServletRequest.getRequestURI())
                 .timestamp(LocalDateTime.now())
@@ -74,7 +75,7 @@ public class PublicEventsController {
     public EventFullDto findById(@PathVariable Long id, HttpServletRequest httpServletRequest) {
         log.info("==> Find event by id: {}", id);
         EndpointHitRequestDto endpointHitRequestDto = EndpointHitRequestDto.builder()
-                .app("evm-main-service")
+                .app(app)
                 .ip(httpServletRequest.getRemoteAddr())
                 .uri(httpServletRequest.getRequestURI())
                 .timestamp(LocalDateTime.now())
