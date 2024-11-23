@@ -4,10 +4,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.user.NewUserRequest;
 import ru.practicum.dto.user.UserDto;
+import ru.practicum.exception.conflict.UniqueEmailByUserException;
 
 import java.util.List;
 
@@ -90,7 +90,7 @@ class UsersServiceImplTest {
 
     @Test
     void createUser_whenEmailNotUnique_thenShouldThrowException() {
-        assertThrows(DataIntegrityViolationException.class, () -> service.createUser(request3));
+        assertThrows(UniqueEmailByUserException.class, () -> service.createUser(request3));
     }
 
     @Test

@@ -223,7 +223,7 @@ class EventsServiceImplTest {
     void findById() {
         long userId = event1.getInitiator().getId();
         long eventId = event1.getId();
-        boolean unique = false;
+        boolean unique = true;
         when(eventRepository.findByInitiatorIdAndId(userId, eventId)).thenReturn(Optional.ofNullable(event1));
         when(requestRepository.getConfirmedRequestsByStatus(List.of(eventId), StatusParticipationRequest.CONFIRMED)).thenReturn(List.of(new ConfirmedRequest(eventId, 1L)));
         when(statClient.getViewStats(event1.getCreatedOn(), event1.getEventDate(), List.of("/events/" + eventId), unique)).thenReturn(List.of());
@@ -247,7 +247,7 @@ class EventsServiceImplTest {
     void update() {
         long userId = event1.getInitiator().getId();
         long eventId = event1.getId();
-        boolean unique = false;
+        boolean unique = true;
         UpdateEventUserRequest updateEventUserRequest = UpdateEventUserRequest.builder()
                 .stateAction(StateActionUser.CANCEL_REVIEW)
                 .build();

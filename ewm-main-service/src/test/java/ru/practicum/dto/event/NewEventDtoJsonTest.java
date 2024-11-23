@@ -47,7 +47,7 @@ class NewEventDtoJsonTest {
                 .title("title")
                 .build();
         JsonContent<NewEventDto> result = json.write(newEventDto);
-        assertThat(result.getJson()).isEqualTo("{\"annotation\":\"annotation\",\"category\":1,\"description\":\"description\",\"eventDate\":\"2030-11-05 02:04:30\",\"location\":{\"lat\":55.331,\"lon\":5.112},\"paid\":false,\"participantLimit\":0,\"requestModeration\":true,\"title\":\"title\"}");
+        assertThat(result.getJson()).isEqualTo("{\"annotation\":\"annotation\",\"category\":1,\"description\":\"description\",\"eventDate\":\"2030-11-05 02:04:30\",\"location\":{\"id\":null,\"lat\":55.331,\"lon\":5.112},\"paid\":false,\"participantLimit\":0,\"requestModeration\":true,\"title\":\"title\"}");
     }
 
     @Test

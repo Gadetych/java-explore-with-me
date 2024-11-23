@@ -13,6 +13,24 @@ services:
       - SPRING_DATASOURCE_PASSWORD=password
     networks:
       - stat-net
+      - ewm-net
+
+  ewm-main-service:
+    build: ewm-main-service
+    container_name: ewm-main-service
+    ports:
+      - "8080:8080"
+    depends_on:
+      - ewm-statistics
+      - service-db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://service-db:5432/main_service_postgres_db
+      - SPRING_DATASOURCE_USERNAME=dbuser
+      - SPRING_DATASOURCE_PASSWORD=password
+      - STAT_CLIENT_BASE_URL=http://ewm-statistics:9090
+    networks:
+      - service-net
+      - ewm-net
 
   stats-db:
     image: postgres:16.1
@@ -20,7 +38,7 @@ services:
     ports:
       - "6542:5432"
     volumes:
-      - postgres:/var/lib/postgresql/data
+      - postgres-stats:/var/lib/postgresql/data
     environment:
       - POSTGRES_DB=stats_postgres_db
       - POSTGRES_USER=dbuser
@@ -33,12 +51,29 @@ services:
     networks:
       - stat-net
 
-#  ewm-main-service:
-#    build: ewm-main-service
-#    container_name: ewm-main-service
-#    ports:
-#      - "8080:8080"
+  service-db:
+    image: postgres:16.1
+    container_name: service-db
+    ports:
+      - "4265:5432"
+    volumes:
+      - postgres-service:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=main_service_postgres_db
+      - POSTGRES_USER=dbuser
+      - POSTGRES_PASSWORD=password
+    healthcheck:
+      test: pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER
+      timeout: 5s
+      interval: 5s
+      retries: 10
+    networks:
+      - service-net
+
 volumes:
-  postgres:
+  postgres-stats:
+  postgres-service:
 networks:
   stat-net:
+  service-net:
+  ewm-net:

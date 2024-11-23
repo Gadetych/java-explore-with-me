@@ -153,7 +153,7 @@ class PrivateEventsControllerTest {
                 .category(1L)
                 .description("This is an updated description for the event.")
                 .eventDate(LocalDateTime.of(2030, 11, 5, 15, 0))
-                .location(new LocationDto(55.331, 5.112))
+                .location(new LocationDto(null, 55.331, 5.112))
                 .paid(true)
                 .participantLimit(100)
                 .requestModeration(false)

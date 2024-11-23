@@ -18,8 +18,7 @@ spring:
 stat:
   client:
     timeout: 5000
-    base-url: "http://localhost:9090"
-
+    base-url: "${STAT_CLIENT_BASE_URL:http://localhost:9090}"
 
 logging:
   level:

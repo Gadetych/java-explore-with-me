@@ -26,6 +26,7 @@ public class Compilation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Builder.Default
     @Column(name = "pinned")
     private boolean pinned = false;
     @Column(name = "title", unique = true, nullable = false)
