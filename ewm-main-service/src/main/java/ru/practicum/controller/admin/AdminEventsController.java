@@ -1,8 +1,10 @@
 package ru.practicum.controller.admin;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,6 +25,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/admin/events")
 @Slf4j
+@Validated
 public class AdminEventsController {
     private final EventsService service;
 
@@ -34,8 +37,8 @@ public class AdminEventsController {
                                       @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeStart,
                                       @RequestParam(name = "rangeEnd", required = false)
                                       @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeEnd,
-                                      @RequestParam(name = "from", required = false) int from,
-                                      @RequestParam(name = "size", required = false) int size) {
+                                      @RequestParam(name = "from", required = false, defaultValue = "0") Integer from,
+                                      @RequestParam(name = "size", required = false, defaultValue = "10") Integer size) {
         log.info("==> Find all events users: {}, states: {}, categories: {}, rangeStart: {}, rangeEnd: {}, from: {}, size: {}",
                 users, states, categories, rangeStart, rangeEnd, from, size);
         return service.findAll(AdminParamEvent.builder()
@@ -51,7 +54,7 @@ public class AdminEventsController {
 
     @PatchMapping("/{eventId}")
     public EventFullDto update(@PathVariable("eventId") Long eventId,
-                               @RequestBody UpdateEventAdminRequest requestBody) {
+                               @RequestBody @Valid UpdateEventAdminRequest requestBody) {
         log.info("==> Update eventId: {}, requestBody: {}", eventId, requestBody);
         return service.update(eventId, requestBody);
     }

@@ -31,8 +31,8 @@ public class AdminUsersController {
 
     @GetMapping
     public List<UserDto> findAllUsers(@RequestParam(required = false) List<Long> ids,
-                                      @RequestParam(required = false, defaultValue = "0") int from,
-                                      @RequestParam(required = false, defaultValue = "10") int size) {
+                                      @RequestParam(required = false, defaultValue = "0") Integer from,
+                                      @RequestParam(required = false, defaultValue = "10") Integer size) {
         log.info("==> findAllUsers ids={}, from={}, size={}", ids, from, size);
         return service.findAllUsers(ids, from, size);
     }

@@ -20,7 +20,7 @@ public class UpdateEventUserRequest extends BaseUpdateEventRequest {
 
     public UpdateEventUserRequest(@Length(min = 20, max = 2000) String annotation,
                                   @Positive Long category,
-                                  @Length(min = 20, max = 2000) String description,
+                                  @Length(min = 20, max = 7000) String description,
                                   LocalDateTime eventDate,
                                   LocationDto location,
                                   Boolean paid,

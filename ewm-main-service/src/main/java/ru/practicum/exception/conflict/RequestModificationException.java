@@ -1,6 +1,6 @@
-package ru.practicum.exception;
+package ru.practicum.exception.conflict;
 
-public class RequestModificationException extends RuntimeException {
+public class RequestModificationException extends ConflictException {
     public RequestModificationException(String message) {
         super(message);
     }

@@ -12,4 +12,6 @@ public interface UsersRepository extends JpaRepository<User, Long> {
 
     @Query("SELECT u FROM User u ORDER BY u.id LIMIT :size OFFSET :from")
     List<User> findAllLimit(@Param("from") int from, @Param("size") int size);
+
+    boolean existsByEmail(String email);
 }

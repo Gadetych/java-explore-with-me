@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 @SuperBuilder
 public class UpdateEventAdminRequest extends BaseUpdateEventRequest {
     private StateActionAdmin stateAction;
+// todo toString() выводит только одно поле, иправить
 
     public UpdateEventAdminRequest(@Length(min = 20, max = 2000) String annotation,
                                    @Positive Long category,

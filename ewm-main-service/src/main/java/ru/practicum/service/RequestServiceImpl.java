@@ -10,8 +10,8 @@ import ru.practicum.dto.request.ConfirmedRequest;
 import ru.practicum.dto.request.ParticipationRequestDto;
 import ru.practicum.enums.StateOfPublication;
 import ru.practicum.enums.StatusParticipationRequest;
-import ru.practicum.exception.NotFoundException;
-import ru.practicum.exception.RequestModificationException;
+import ru.practicum.exception.conflict.RequestModificationException;
+import ru.practicum.exception.not_found.NotFoundException;
 import ru.practicum.mapper.RequestsMapper;
 import ru.practicum.model.Event;
 import ru.practicum.model.QRequest;
@@ -62,10 +62,11 @@ public class RequestServiceImpl implements RequestService {
         }
         List<ConfirmedRequest> listConfirmedRequests = requestRepository.getConfirmedRequestsByStatus(List.of(eventId), StatusParticipationRequest.CONFIRMED);
         long confirmedRequest = listConfirmedRequests.isEmpty() ? 0 : listConfirmedRequests.get(0).getConfirmedCountRequests();
-        if (eventModel.getParticipantLimit() <= confirmedRequest) {
+        int participantLimit = eventModel.getParticipantLimit();
+        if (participantLimit != 0 && participantLimit <= confirmedRequest) {
             throw new RequestModificationException("The event has reached the limit of requests for participation");
         }
-        StatusParticipationRequest status = eventModel.isRequestModeration() ? StatusParticipationRequest.PENDING : StatusParticipationRequest.CONFIRMED;
+        StatusParticipationRequest status = (eventModel.isRequestModeration() && eventModel.getParticipantLimit() != 0) ? StatusParticipationRequest.PENDING : StatusParticipationRequest.CONFIRMED;
         User requester = usersRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found by id: " + userId));
         Request requestModel = requestRepository.save(Request.builder()
                 .created(LocalDateTime.now())

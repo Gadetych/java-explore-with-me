@@ -35,8 +35,8 @@ public class PrivateEventsController {
 
     @GetMapping
     public List<EventShortDto> findAll(@PathVariable long userId,
-                                       @RequestParam(required = false, defaultValue = "0") int from,
-                                       @RequestParam(required = false, defaultValue = "10") int size) {
+                                       @RequestParam(required = false, defaultValue = "0") Integer from,
+                                       @RequestParam(required = false, defaultValue = "10") Integer size) {
         log.info("==> Find all events by userId {}, from {}, size {}", userId, from, size);
         return service.findAll(userId, from, size);
     }

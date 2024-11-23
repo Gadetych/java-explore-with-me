@@ -6,13 +6,14 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.practicum.ewm.stats.common.dto.ApiError;
-import ru.practicum.exception.EventModificationException;
-import ru.practicum.exception.NotFoundException;
-import ru.practicum.exception.RequestModificationException;
+import ru.practicum.exception.conflict.ConflictException;
+import ru.practicum.exception.not_found.NotFoundException;
+import ru.practicum.exception.validation.BadRequestException;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -37,7 +38,8 @@ public class MainServiceHandlerController {
         return apiError;
     }
 
-    @ExceptionHandler({ConstraintViolationException.class, MethodArgumentNotValidException.class})
+    @ExceptionHandler({ConstraintViolationException.class, MethodArgumentNotValidException.class, DataIntegrityViolationException.class,
+            MissingServletRequestParameterException.class, BadRequestException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError handleBadRequest(RuntimeException e) {
         log.info("400 {}", e.getMessage(), e);
@@ -50,7 +52,7 @@ public class MainServiceHandlerController {
         return apiError;
     }
 
-    @ExceptionHandler({EventModificationException.class, RequestModificationException.class, DataIntegrityViolationException.class})
+    @ExceptionHandler({ConflictException.class})
     @ResponseStatus(HttpStatus.CONFLICT)
     public ApiError handleUserAlreadyExist(RuntimeException e) {
         log.info("409 {}", e.getMessage(), e);

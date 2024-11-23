@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.user.NewUserRequest;
 import ru.practicum.dto.user.UserDto;
-import ru.practicum.exception.NotFoundException;
+import ru.practicum.exception.conflict.UniqueEmailByUserException;
 import ru.practicum.mapper.UserMapper;
 import ru.practicum.model.User;
 import ru.practicum.repository.UsersRepository;
@@ -38,6 +38,9 @@ public class UsersServiceImpl implements UsersService {
     @Override
     public UserDto createUser(NewUserRequest requestBody) {
         log.debug("==> Creating new user: {}", requestBody);
+        if (repository.existsByEmail(requestBody.getEmail())) {
+            throw new UniqueEmailByUserException("Email already exists");
+        }
         User model = repository.save(UserMapper.dtoToModel(requestBody));
         log.debug("<== Creating new user: {}", model);
         return UserMapper.modelToDto(model);
@@ -47,9 +50,6 @@ public class UsersServiceImpl implements UsersService {
     @Override
     public void deleteUser(long userId) {
         log.debug("==> Deleting user: {}", userId);
-        if (!repository.existsById(userId)) {
-            throw new NotFoundException("User not found by id: " + userId);
-        }
         repository.deleteById(userId);
         log.debug("<== Deleting user: {}", userId);
     }

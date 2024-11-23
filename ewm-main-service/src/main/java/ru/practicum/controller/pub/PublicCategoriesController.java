@@ -23,9 +23,9 @@ public class PublicCategoriesController {
 
     @GetMapping
     public List<CategoryDto> findAll(@PositiveOrZero
-                                     @RequestParam(required = false, defaultValue = "0") int from,
+                                         @RequestParam(required = false, defaultValue = "0") Integer from,
                                      @PositiveOrZero
-                                     @RequestParam(required = false, defaultValue = "10") int size) {
+                                         @RequestParam(required = false, defaultValue = "10") Integer size) {
         log.info("==> Find all categories from={}, size={}", from, size);
         return service.findAll(from, size);
     }

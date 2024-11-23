@@ -21,6 +21,8 @@ public class PublicParamEvent {
     private LocalDateTime rangeEnd;
     private Boolean onlyAvailable;
     private SortEvent sort;
-    private int from;
-    private int size;
+    @Builder.Default
+    private Integer from = 0;
+    @Builder.Default
+    private Integer size = 10;
 }

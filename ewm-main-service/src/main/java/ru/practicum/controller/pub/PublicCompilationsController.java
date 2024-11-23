@@ -23,8 +23,8 @@ public class PublicCompilationsController {
 
     @GetMapping
     public List<CompilationDto> findAll(@RequestParam(name = "pinned", required = false) Boolean pinned,
-                                        @RequestParam(name = "from", required = false, defaultValue = "0") int from,
-                                        @RequestParam(name = "size", required = false, defaultValue = "10") int size) {
+                                        @RequestParam(name = "from", required = false, defaultValue = "0") Integer from,
+                                        @RequestParam(name = "size", required = false, defaultValue = "10") Integer size) {
         return service.findAll(PublicCompilationParam.builder()
                 .pinned(pinned)
                 .from(from)

@@ -15,7 +15,7 @@ import ru.practicum.dto.compilation.PublicCompilationParam;
 import ru.practicum.dto.compilation.UpdateCompilationRequest;
 import ru.practicum.dto.event.EventFullDto;
 import ru.practicum.enums.CompilationMapper;
-import ru.practicum.exception.NotFoundException;
+import ru.practicum.exception.not_found.NotFoundException;
 import ru.practicum.mapper.EventMapper;
 import ru.practicum.model.Compilation;
 import ru.practicum.model.Event;
@@ -41,8 +41,11 @@ public class CompilationServiceImpl implements CompilationService {
     @Override
     public CompilationDto create(NewCompilationDto requestBody) {
         log.debug("==> Admin create compilation, requestBody: {}", requestBody);
+//       todo List<EventFullDto> eventFullDtoList;
+//        if (requestBody.getEvents() != null && !requestBody.getEvents().isEmpty()) {
+//            eventFullDtoList = eventsService.findAllById(requestBody.getEvents());
+//        } else eventFullDtoList = List.of();
         List<EventFullDto> eventFullDtoList = eventsService.findAllById(requestBody.getEvents());
-//        todo в событии пользователь без имейла
         Compilation model = CompilationMapper.newDtoToModel(requestBody, eventFullDtoList);
         model = compilationRepository.save(model);
         CompilationDto result = CompilationMapper.modelToDto(model, eventFullDtoList);
@@ -63,10 +66,6 @@ public class CompilationServiceImpl implements CompilationService {
         log.debug("==> Admin update compilation, compId: {}, request body: {}", compId, requestBody);
         Compilation model = compilationRepository.findById(compId).orElseThrow(() -> new NotFoundException("Compilation not found with id: " + compId));
         List<EventFullDto> eventFullDtoList = eventsService.findAllById(requestBody.getEvents());
-        if (eventFullDtoList.isEmpty()) {
-            throw new NotFoundException("No found event with ids: " + requestBody.getEvents());
-        }
-//       TODO заменит или добавит список??
         model = compilationRepository.save(updateCompilationWithNewParam(model, eventFullDtoList, requestBody));
         CompilationDto result = CompilationMapper.modelToDto(model, eventFullDtoList);
         log.debug("<== Admin update compilation, result: {}", result);

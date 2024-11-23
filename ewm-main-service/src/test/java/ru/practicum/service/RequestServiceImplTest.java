@@ -11,7 +11,7 @@ import ru.practicum.dto.request.ConfirmedRequest;
 import ru.practicum.dto.request.ParticipationRequestDto;
 import ru.practicum.enums.StateOfPublication;
 import ru.practicum.enums.StatusParticipationRequest;
-import ru.practicum.exception.RequestModificationException;
+import ru.practicum.exception.conflict.RequestModificationException;
 import ru.practicum.model.Category;
 import ru.practicum.model.Event;
 import ru.practicum.model.Location;

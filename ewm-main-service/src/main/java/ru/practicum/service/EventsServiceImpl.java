@@ -21,15 +21,15 @@ import ru.practicum.dto.request.ConfirmedRequest;
 import ru.practicum.dto.request.EventRequestStatusUpdateRequest;
 import ru.practicum.dto.request.EventRequestStatusUpdateResult;
 import ru.practicum.dto.request.ParticipationRequestDto;
-import ru.practicum.enums.StateActionAdmin;
 import ru.practicum.enums.StateActionUser;
 import ru.practicum.enums.StateOfPublication;
 import ru.practicum.enums.StatusParticipationRequest;
 import ru.practicum.ewm.stats.client.StatClient;
 import ru.practicum.ewm.stats.common.dto.ViewStatsResponseDto;
-import ru.practicum.exception.EventModificationException;
-import ru.practicum.exception.NotFoundException;
-import ru.practicum.exception.RequestModificationException;
+import ru.practicum.exception.conflict.PublicationEventException;
+import ru.practicum.exception.conflict.RequestModificationException;
+import ru.practicum.exception.not_found.NotFoundException;
+import ru.practicum.exception.validation.EventModificationException;
 import ru.practicum.mapper.EventMapper;
 import ru.practicum.mapper.LocationMapper;
 import ru.practicum.mapper.RequestsMapper;
@@ -117,7 +117,7 @@ public class EventsServiceImpl implements EventsService {
     }
 
     private Map<String, Long> getViewsMap(List<String> uris, LocalDateTime earliestDate, LocalDateTime distantDate) {
-        boolean unique = false;
+        boolean unique = true;
         List<ViewStatsResponseDto> viewStats = statClient.getViewStats(earliestDate, distantDate, uris, unique);
         Map<String, Long> viewsMap = new HashMap<>();
         for (ViewStatsResponseDto stat : viewStats) {
@@ -172,7 +172,7 @@ public class EventsServiceImpl implements EventsService {
     private Event changeEventByUser(long eventId, UpdateEventUserRequest requestBody) {
         Event model = makeChangesEventParams(eventId, requestBody);
         if (requestBody.getStateAction() != null) {
-            model.setState(requestBody.getStateAction().equals(StateActionUser.CANCEL_REVIEW) ? StateOfPublication.CANCELED : StateOfPublication.PUBLISHED);
+            model.setState(requestBody.getStateAction().equals(StateActionUser.CANCEL_REVIEW) ? StateOfPublication.CANCELED : StateOfPublication.PENDING);
         }
         model = eventRepository.save(model);
         return model;
@@ -181,7 +181,7 @@ public class EventsServiceImpl implements EventsService {
     private Event makeChangesEventParams(long eventId, BaseUpdateEventRequest requestBody) {
         Event model = eventRepository.findById(eventId).orElseThrow(() -> new NotFoundException("Event not found by id: " + eventId));
         if (model.getState().equals(StateOfPublication.PUBLISHED)) {
-            throw new EventModificationException("Only pending or canceled events can be changed");
+            throw new PublicationEventException("Only pending or canceled events can be changed");
         }
         if (requestBody.getCategory() != null) {
             Category category = categoriesRepository.findById(requestBody.getCategory()).orElseThrow(() -> new NotFoundException("Category not found by id=" + requestBody.getCategory()));
@@ -225,7 +225,7 @@ public class EventsServiceImpl implements EventsService {
 
     private long getViews(long eventId, Event model) {
         String uri = "/events/" + eventId;
-        boolean unique = false;
+        boolean unique = true;
         List<Long> listViews = statClient.getViewStats(model.getCreatedOn(), model.getEventDate(), List.of(uri), unique).stream()
                 .map(ViewStatsResponseDto::getHits)
                 .toList();
@@ -371,13 +371,16 @@ public class EventsServiceImpl implements EventsService {
 
     private Event changeEventByAdmin(long eventId, UpdateEventAdminRequest requestBody) {
         Event model = makeChangesEventParams(eventId, requestBody);
-        if (requestBody.getStateAction() != null) {
-            if (requestBody.getStateAction().equals(StateActionAdmin.REJECT_EVENT)) {
-                model.setState(StateOfPublication.CANCELED);
-            } else {
-                model.setState(StateOfPublication.PUBLISHED);
-                model.setPublishedOn(LocalDateTime.now());
+        if (requestBody.getStateAction() != null && model.getState().equals(StateOfPublication.PENDING)) {
+            switch (requestBody.getStateAction()) {
+                case REJECT_EVENT -> model.setState(StateOfPublication.CANCELED);
+                case PUBLISH_EVENT -> {
+                    model.setState(StateOfPublication.PUBLISHED);
+                    model.setPublishedOn(LocalDateTime.now());
+                }
             }
+        } else if (!model.getState().equals(StateOfPublication.PENDING)) {
+            throw new PublicationEventException("Can't change state of event " + model.getId() + " because event state is " + model.getState());
         }
         model = eventRepository.save(model);
         return model;
@@ -395,7 +398,7 @@ public class EventsServiceImpl implements EventsService {
         Comparator<EventShortDto> comparator = switch (paramSearch.getSort()) {
             case EVENT_DATE -> comparator = Comparator.comparing(EventShortDto::getEventDate);
             case VIEWS -> comparator = Comparator.comparing(EventShortDto::getViews);
-            default -> comparator = Comparator.comparing(EventShortDto::getId);
+            case null -> comparator = Comparator.comparing(EventShortDto::getId);
         };
 
         Stream<EventShortDto> stream = result.stream().sorted(comparator);
