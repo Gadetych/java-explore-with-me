@@ -1,10 +1,9 @@
-package ru.practicum.enums;
+package ru.practicum.mapper;
 
 import lombok.experimental.UtilityClass;
 import ru.practicum.dto.compilation.CompilationDto;
 import ru.practicum.dto.compilation.NewCompilationDto;
 import ru.practicum.dto.event.EventFullDto;
-import ru.practicum.mapper.EventMapper;
 import ru.practicum.model.Compilation;
 
 import java.util.List;

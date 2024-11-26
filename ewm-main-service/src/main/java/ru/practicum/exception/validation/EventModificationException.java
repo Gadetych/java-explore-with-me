@@ -4,8 +4,4 @@ public class EventModificationException extends BadRequestException {
     public EventModificationException(String message) {
         super(message);
     }
-
-    public EventModificationException(String message, Throwable cause) {
-        super(message, cause);
-    }
 }

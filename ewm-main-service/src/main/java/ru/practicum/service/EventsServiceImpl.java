@@ -70,7 +70,7 @@ public class EventsServiceImpl implements EventsService {
         BooleanExpression predicate = QEvent.event.initiator.id.eq(userId);
         List<Event> events = getEvents(predicate, from, size);
         List<EventShortDto> result = getEventsShortDto(events);
-        log.debug("<== Find all events short dto {} ", result);
+        log.debug("<== Found all events short dto {} ", result);
         return result;
     }
 
@@ -137,7 +137,7 @@ public class EventsServiceImpl implements EventsService {
         model = eventRepository.findById(eventId).orElseThrow(() -> new NotFoundException("Event not found by id: " + eventId));
         long confirmedRequests = 0L;
         long views = 0;
-        log.debug("<== Create new event {} for userId {}", model, userId + "");
+        log.debug("<== Created new event {} for userId {}", model, userId + "");
         return EventMapper.modelToFullDto(model, confirmedRequests, views);
     }
 
@@ -148,7 +148,7 @@ public class EventsServiceImpl implements EventsService {
         long confirmedRequests = getConfirmedRequests(eventId);
         long views = getViews(eventId, model);
         EventFullDto result = EventMapper.modelToFullDto(model, confirmedRequests, views);
-        log.debug("<== User finds his event: result {}", result);
+        log.debug("<== User founds his event: result {}", result);
         return result;
     }
 
@@ -158,7 +158,7 @@ public class EventsServiceImpl implements EventsService {
         log.debug("==> User update of the event: request body {} for userId {} adn eventId {}", requestBody, userId, eventId);
         Event model = changeEventByUser(eventId, requestBody);
         EventFullDto result = getDataForMapping(model);
-        log.debug("<=== User update of the event: result {}", result);
+        log.debug("<=== User updated of the event: result {}", result);
         return result;
     }
 
@@ -236,7 +236,7 @@ public class EventsServiceImpl implements EventsService {
     public List<ParticipationRequestDto> findRequests(long userId, long eventId) {
         log.debug("==> Find requests for event {}, userId {}", eventId, userId);
         List<Request> requests = requestRepository.findAllByEventId(eventId);
-        log.debug("<== Find requests {}", requests);
+        log.debug("<== Found requests {}", requests);
         return requests.stream()
                 .map(RequestsMapper::modelToDto)
                 .toList();
@@ -256,7 +256,7 @@ public class EventsServiceImpl implements EventsService {
             changeStatusRequests(eventId, requestBody, eventModel, numberConfirmedRequests);
         }
         Map<StatusParticipationRequest, List<ParticipationRequestDto>> map = splitRequestsByStatus(eventId);
-        log.debug("<== Update status confirmed {}, rejected {}", map.get(StatusParticipationRequest.CONFIRMED), map.get(StatusParticipationRequest.REJECTED));
+        log.debug("<== Updated status confirmed {}, rejected {}", map.get(StatusParticipationRequest.CONFIRMED), map.get(StatusParticipationRequest.REJECTED));
         return EventRequestStatusUpdateResult.builder()
                 .confirmedRequests(map.get(StatusParticipationRequest.CONFIRMED))
                 .rejectedRequests(map.get(StatusParticipationRequest.REJECTED))
@@ -308,7 +308,7 @@ public class EventsServiceImpl implements EventsService {
         BooleanExpression predicate = selectPredicate(paramSearch);
         List<Event> events = getEvents(predicate, paramSearch.getFrom(), paramSearch.getSize());
         List<EventFullDto> result = getEventsFullDto(events);
-        log.debug("<== Find all events result {}", result);
+        log.debug("<== Found all events result {}", result);
         return result;
     }
 
@@ -365,7 +365,7 @@ public class EventsServiceImpl implements EventsService {
         log.debug("==> Admin update of the event: request body {}, eventId {}", requestBody, eventId);
         Event model = changeEventByAdmin(eventId, requestBody);
         EventFullDto result = getDataForMapping(model);
-        log.debug("<=== Admin update of the event: result {}", result);
+        log.debug("<=== Admin updated of the event: result {}", result);
         return result;
     }
 
@@ -407,7 +407,7 @@ public class EventsServiceImpl implements EventsService {
         }
 
         result = stream.toList();
-        log.debug("<=== Find all events {}", result);
+        log.debug("<=== Found all events {}", result);
         return result;
     }
 
@@ -442,7 +442,7 @@ public class EventsServiceImpl implements EventsService {
         long views = getViews(eventId, model);
 
         EventFullDto result = EventMapper.modelToFullDto(model, confirmedRequests, views);
-        log.debug("<== Find the event: result {}", result);
+        log.debug("<== Found the event: result {}", result);
         return result;
     }
 
@@ -451,7 +451,7 @@ public class EventsServiceImpl implements EventsService {
         log.debug("==> Find all events by id {}", eventIds);
         List<Event> events = eventRepository.findAllById(eventIds);
         List<EventFullDto> result = getEventsFullDto(events);
-        log.debug("<== Find all events: {}", result);
+        log.debug("<== Found all events: {}", result);
         return result;
     }
 

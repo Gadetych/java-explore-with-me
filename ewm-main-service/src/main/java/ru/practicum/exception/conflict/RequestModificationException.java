@@ -4,8 +4,4 @@ public class RequestModificationException extends ConflictException {
     public RequestModificationException(String message) {
         super(message);
     }
-
-    public RequestModificationException(String message, Throwable cause) {
-        super(message, cause);
-    }
 }

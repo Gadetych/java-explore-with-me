@@ -14,8 +14,8 @@ import ru.practicum.dto.compilation.NewCompilationDto;
 import ru.practicum.dto.compilation.PublicCompilationParam;
 import ru.practicum.dto.compilation.UpdateCompilationRequest;
 import ru.practicum.dto.event.EventFullDto;
-import ru.practicum.enums.CompilationMapper;
 import ru.practicum.exception.not_found.NotFoundException;
+import ru.practicum.mapper.CompilationMapper;
 import ru.practicum.mapper.EventMapper;
 import ru.practicum.model.Compilation;
 import ru.practicum.model.Event;
@@ -41,15 +41,14 @@ public class CompilationServiceImpl implements CompilationService {
     @Override
     public CompilationDto create(NewCompilationDto requestBody) {
         log.debug("==> Admin create compilation, requestBody: {}", requestBody);
-//       todo List<EventFullDto> eventFullDtoList;
-//        if (requestBody.getEvents() != null && !requestBody.getEvents().isEmpty()) {
-//            eventFullDtoList = eventsService.findAllById(requestBody.getEvents());
-//        } else eventFullDtoList = List.of();
-        List<EventFullDto> eventFullDtoList = eventsService.findAllById(requestBody.getEvents());
+        List<EventFullDto> eventFullDtoList;
+        if (requestBody.getEvents() != null && !requestBody.getEvents().isEmpty()) {
+            eventFullDtoList = eventsService.findAllById(requestBody.getEvents());
+        } else eventFullDtoList = List.of();
         Compilation model = CompilationMapper.newDtoToModel(requestBody, eventFullDtoList);
         model = compilationRepository.save(model);
         CompilationDto result = CompilationMapper.modelToDto(model, eventFullDtoList);
-        log.debug("<== Admin create compilation, result: {}", result);
+        log.debug("<== Admin created compilation, result: {}", result);
         return result;
     }
 
@@ -68,7 +67,7 @@ public class CompilationServiceImpl implements CompilationService {
         List<EventFullDto> eventFullDtoList = eventsService.findAllById(requestBody.getEvents());
         model = compilationRepository.save(updateCompilationWithNewParam(model, eventFullDtoList, requestBody));
         CompilationDto result = CompilationMapper.modelToDto(model, eventFullDtoList);
-        log.debug("<== Admin update compilation, result: {}", result);
+        log.debug("<== Admin updated compilation, result: {}", result);
         return result;
     }
 
@@ -94,7 +93,7 @@ public class CompilationServiceImpl implements CompilationService {
         List<Compilation> compilations = getCompilations(predicate, paramSearch.getFrom(), paramSearch.getSize());
         Map<Long, List<EventFullDto>> mapCompIdByListEventFull = getEventsFullDto(compilations);
         List<CompilationDto> result = getCompilationDtoList(compilations, mapCompIdByListEventFull);
-        log.debug("<== Public find all events result {}", result);
+        log.debug("<== Public found all events result {}", result);
         return result;
     }
 
@@ -152,7 +151,7 @@ public class CompilationServiceImpl implements CompilationService {
                         .toList()
         );
         CompilationDto result = CompilationMapper.modelToDto(model, eventFullDtoList);
-        log.debug("<== Admin find compilation, result: {}", result);
+        log.debug("<== Admin found compilation, result: {}", result);
         return result;
     }
 }

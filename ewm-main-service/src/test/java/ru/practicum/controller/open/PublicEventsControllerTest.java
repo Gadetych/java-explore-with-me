@@ -1,4 +1,4 @@
-package ru.practicum.controller.pub;
+package ru.practicum.controller.open;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

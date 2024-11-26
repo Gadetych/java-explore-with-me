@@ -42,7 +42,7 @@ public class UsersServiceImpl implements UsersService {
             throw new UniqueEmailByUserException("Email already exists");
         }
         User model = repository.save(UserMapper.dtoToModel(requestBody));
-        log.debug("<== Creating new user: {}", model);
+        log.debug("<== Created new user: {}", model);
         return UserMapper.modelToDto(model);
     }
 
@@ -51,6 +51,6 @@ public class UsersServiceImpl implements UsersService {
     public void deleteUser(long userId) {
         log.debug("==> Deleting user: {}", userId);
         repository.deleteById(userId);
-        log.debug("<== Deleting user: {}", userId);
+        log.debug("<== Deleted user: {}", userId);
     }
 }

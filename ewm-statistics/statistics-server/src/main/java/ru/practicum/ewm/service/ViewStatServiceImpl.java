@@ -23,7 +23,7 @@ public class ViewStatServiceImpl implements ViewStatService {
     public void save(EndpointHitRequestDto requestDto) {
         log.debug("==> Save endpoint hit: {}", requestDto);
         repository.save(ViewStatMapper.dtoRequestToModel(requestDto));
-        log.debug("<== Save endpoint hit: {}", requestDto);
+        log.debug("<== Saved endpoint hit: {}", requestDto);
     }
 
     @Override
@@ -35,7 +35,7 @@ public class ViewStatServiceImpl implements ViewStatService {
         } else {
             responseDtoList = repository.findViewStatsByUri(start, end, uris);
         }
-        log.debug("<== Get endpoint hits result: {}", responseDtoList);
+        log.debug("<== Got endpoint hits result: {}", responseDtoList);
         return responseDtoList;
     }
 }

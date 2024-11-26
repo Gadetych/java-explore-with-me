@@ -1,4 +1,4 @@
-package ru.practicum.controller.pub;
+package ru.practicum.controller.open;
 
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;

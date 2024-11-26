@@ -1,9 +1,10 @@
 package ru.practicum.dto.event;
 
 import jakarta.validation.constraints.Positive;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.validator.constraints.Length;
 import ru.practicum.dto.location.LocationDto;
@@ -12,12 +13,12 @@ import ru.practicum.enums.StateActionAdmin;
 import java.time.LocalDateTime;
 
 @EqualsAndHashCode(callSuper = true)
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @SuperBuilder
 public class UpdateEventAdminRequest extends BaseUpdateEventRequest {
     private StateActionAdmin stateAction;
-// todo toString() выводит только одно поле, иправить
 
     public UpdateEventAdminRequest(@Length(min = 20, max = 2000) String annotation,
                                    @Positive Long category,
@@ -31,5 +32,12 @@ public class UpdateEventAdminRequest extends BaseUpdateEventRequest {
                                    StateActionAdmin stateAction) {
         super(annotation, category, description, eventDate, location, paid, participantLimit, requestModeration, title);
         this.stateAction = stateAction;
+    }
+
+    @Override
+    public String toString() {
+        return "UpdateEventAdminRequest{" +
+                "stateAction=" + stateAction +
+                "} " + super.toString();
     }
 }

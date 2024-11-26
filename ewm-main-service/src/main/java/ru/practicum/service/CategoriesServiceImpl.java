@@ -28,7 +28,7 @@ public class CategoriesServiceImpl implements CategoriesService {
         log.debug("==> Create new category: {}", requestBody);
         existCategoryWithName(requestBody.getName());
         Category model = repository.save(CategoryMapper.dtoToModel(requestBody));
-        log.debug("<== Create new category: {}", model);
+        log.debug("<== Created new category: {}", model);
         return CategoryMapper.modelToDto(model);
     }
 
@@ -56,7 +56,7 @@ public class CategoriesServiceImpl implements CategoriesService {
             }
         }
         Category model = repository.save(CategoryMapper.dtoToModel(requestBody));
-        log.debug("<== Update category: {}", model);
+        log.debug("<== Updated category: {}", model);
         return CategoryMapper.modelToDto(model);
     }
 
@@ -65,7 +65,7 @@ public class CategoriesServiceImpl implements CategoriesService {
     public List<CategoryDto> findAll(int from, int size) {
         log.debug("==> Find all Categories from {}, size {}", from, size);
         List<Category> result = repository.findAllLimit(from, size);
-        log.debug("<== Find all Categories from {}, size {}", from, size);
+        log.debug("<== Found all Categories from {}, size {}", from, size);
         return result.stream()
                 .map(CategoryMapper::modelToDto)
                 .toList();
@@ -75,7 +75,7 @@ public class CategoriesServiceImpl implements CategoriesService {
     public CategoryDto findById(long catId) {
         log.debug("==> Find Category with id {}", catId);
         Category result = repository.findById(catId).orElseThrow(() -> new NotFoundException(String.format("Category with id=%d was not found", catId)));
-        log.debug("<== Find Category with id {}", catId);
+        log.debug("<== Found Category with id {}", catId);
         return CategoryMapper.modelToDto(result);
     }
 }

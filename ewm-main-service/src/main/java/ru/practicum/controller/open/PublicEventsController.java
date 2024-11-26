@@ -1,4 +1,4 @@
-package ru.practicum.controller.pub;
+package ru.practicum.controller.open;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;

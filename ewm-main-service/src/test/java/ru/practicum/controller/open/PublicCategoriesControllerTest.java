@@ -1,4 +1,4 @@
-package ru.practicum.controller.pub;
+package ru.practicum.controller.open;
 
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;

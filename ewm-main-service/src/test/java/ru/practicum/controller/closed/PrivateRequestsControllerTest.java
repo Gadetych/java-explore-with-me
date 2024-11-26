@@ -1,4 +1,4 @@
-package ru.practicum.controller.privy;
+package ru.practicum.controller.closed;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;

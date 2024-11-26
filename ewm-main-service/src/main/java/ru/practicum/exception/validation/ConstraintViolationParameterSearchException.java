@@ -4,8 +4,4 @@ public class ConstraintViolationParameterSearchException extends BadRequestExcep
     public ConstraintViolationParameterSearchException(String message) {
         super(message);
     }
-
-    public ConstraintViolationParameterSearchException(String message, Throwable cause) {
-        super(message, cause);
-    }
 }

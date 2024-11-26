@@ -42,7 +42,7 @@ public class RequestServiceImpl implements RequestService {
         Iterable<Request> requests = requestRepository.findAll(predicate, sort);
         List<ParticipationRequestDto> result = new ArrayList<>();
         requests.forEach(request -> result.add(RequestsMapper.modelToDto(request)));
-        log.debug("<== Find all requests  {}", result);
+        log.debug("<== Found all requests  {}", result);
         return result;
     }
 
@@ -74,7 +74,7 @@ public class RequestServiceImpl implements RequestService {
                 .requester(requester)
                 .status(status)
                 .build());
-        log.debug("<== Create request {}", requestModel);
+        log.debug("<== Created request {}", requestModel);
         return RequestsMapper.modelToDto(requestModel);
     }
 
@@ -88,7 +88,7 @@ public class RequestServiceImpl implements RequestService {
         }
         requestModel.setStatus(StatusParticipationRequest.CANCELED);
         requestModel = requestRepository.save(requestModel);
-        log.debug("<== Update request {}", requestModel);
+        log.debug("<== Updated request {}", requestModel);
         return RequestsMapper.modelToDto(requestModel);
     }
 }

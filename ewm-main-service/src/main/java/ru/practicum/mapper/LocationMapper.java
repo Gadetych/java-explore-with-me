@@ -7,7 +7,6 @@ import ru.practicum.model.Location;
 @UtilityClass
 public class LocationMapper {
     public Location dtoToModel(LocationDto dto) {
-//        todo нужен id
         return Location.builder()
                 .id(dto.getId())
                 .lat(dto.getLat())
