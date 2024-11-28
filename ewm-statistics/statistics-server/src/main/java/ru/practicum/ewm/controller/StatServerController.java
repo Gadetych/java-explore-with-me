@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import ru.practicum.ewm.exception.TimestampRangeException;
 import ru.practicum.ewm.service.ViewStatService;
 import ru.practicum.ewm.stats.common.dto.EndpointHitRequestDto;
 import ru.practicum.ewm.stats.common.dto.ViewStatsResponseDto;
@@ -47,6 +48,9 @@ public class StatServerController {
                                                @RequestParam(value = "uris", required = false) List<String> uris,
                                                @RequestParam(value = "unique", defaultValue = "false") boolean unique) {
         log.debug("getStats start: {}, end: {}, uris: {}, unique: {}", start, end, uris, unique);
+        if (start.isAfter(end)) {
+            throw new TimestampRangeException("start is after end");
+        }
         return service.getStats(start, end, uris, unique);
     }
 }

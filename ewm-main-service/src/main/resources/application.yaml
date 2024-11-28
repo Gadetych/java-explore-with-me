@@ -1,0 +1,43 @@
+server:
+  port: 8080
+
+spring:
+  profiles:
+    active: def
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        format_sql: true
+  sql:
+    init:
+      mode: always
+
+stat:
+  client:
+    timeout: 5000
+    base-url: "${STAT_CLIENT_BASE_URL:http://localhost:9090}"
+
+logging:
+  level:
+    ru:
+      practicum: DEBUG
+    org:
+      springframework:
+        orm:
+          jpa: INFO
+        transaction:
+          interceptor: TRACE
+          JpaTransactionManager: DEBUG
+      # альтернативный вариант для отображения SQL-запросов
+      hibernate:
+        #        SQL: DEBUG
+        type:
+          descriptor:
+            sql:
+              BasicBinder: TRACE
+        orm:
+          jdbc:
+            bind: TRACE
