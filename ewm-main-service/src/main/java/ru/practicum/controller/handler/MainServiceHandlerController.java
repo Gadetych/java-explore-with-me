@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.practicum.ewm.stats.common.dto.ApiError;
 import ru.practicum.exception.conflict.ConflictException;
+import ru.practicum.exception.forbidden.ForbiddenException;
 import ru.practicum.exception.not_found.NotFoundException;
 import ru.practicum.exception.validation.BadRequestException;
 
@@ -48,6 +49,19 @@ public class MainServiceHandlerController {
         apiError.setMessage(e.getMessage());
         apiError.setStatus(HttpStatus.BAD_REQUEST.toString());
         apiError.setReason("Incorrectly made request.");
+        apiError.setTimestamp(LocalDateTime.now());
+        return apiError;
+    }
+
+    @ExceptionHandler({ForbiddenException.class})
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ApiError handleForbiddenRequest(RuntimeException e) {
+        log.info("403 {}", e.getMessage(), e);
+        e.printStackTrace(pw);
+        ApiError apiError = new ApiError();
+        apiError.setMessage(e.getMessage());
+        apiError.setStatus(HttpStatus.FORBIDDEN.toString());
+        apiError.setReason("Not access.");
         apiError.setTimestamp(LocalDateTime.now());
         return apiError;
     }
