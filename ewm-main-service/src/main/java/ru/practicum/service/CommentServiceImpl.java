@@ -88,7 +88,7 @@ public class CommentServiceImpl implements CommentService {
 
     //    Public
     @Override
-    public List<CommentDto> findAllByEventId(Long eventId, int from, int size) {
+    public List<CommentDto> findAllByEventId(Long eventId, Integer from, Integer size) {
         log.debug("==> Find all comments by event id: {}", eventId);
         BooleanExpression predicate = QComment.comment.event.id.eq(eventId);
         Sort sort = Sort.by(Sort.Direction.ASC, "id");

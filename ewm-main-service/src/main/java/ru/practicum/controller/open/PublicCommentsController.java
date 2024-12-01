@@ -1,11 +1,11 @@
 package ru.practicum.controller.open;
 
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-import lombok.NonNull;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,14 +21,15 @@ import java.util.List;
 public class PublicCommentsController {
     private final CommentService service;
 
-    @GetMapping("/{eventId}")
-    public List<CommentDto> findAllByEventId(@PathVariable
-                                             @NonNull
+    @GetMapping
+    public List<CommentDto> findAllByEventId(@RequestParam(name = "eventId")
+                                             @NotNull
                                              @Positive Long eventId,
-                                             @RequestParam(name = "from", defaultValue = "0")
-                                             @Positive Integer from,
-                                             @RequestParam(name = "size", defaultValue = "10")
-                                             @Positive Integer size) {
+                                             @RequestParam(name = "from", required = false, defaultValue = "0")
+                                             @PositiveOrZero Integer from,
+                                             @RequestParam(name = "size", required = false, defaultValue = "10")
+                                             @PositiveOrZero Integer size) {
+        log.info("==> Find all comments by event id {}", eventId);
         return service.findAllByEventId(eventId, from, size);
     }
 }

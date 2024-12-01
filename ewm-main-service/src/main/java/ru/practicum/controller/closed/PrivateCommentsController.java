@@ -1,8 +1,8 @@
 package ru.practicum.controller.closed;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -27,15 +27,12 @@ import ru.practicum.service.CommentService;
 @RequestMapping("/users/{userId}/comments")
 @Slf4j
 public class PrivateCommentsController {
-    private CommentService service;
+    private final CommentService service;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public CommentDto create(@PathVariable
-                             @NonNull
-                             @Positive Long userId,
-                             @RequestParam("eventId")
-                             @NonNull
+    public CommentDto create(@PathVariable @NotNull
+                             @Positive Long userId, @RequestParam("eventId") @NotNull
                              @Positive
                              Long eventId,
                              @RequestBody
@@ -45,11 +42,8 @@ public class PrivateCommentsController {
     }
 
     @PatchMapping("/{comId}")
-    public CommentDto change(@PathVariable
-                             @NonNull
-                             @Positive Long userId,
-                             @PathVariable
-                             @NonNull
+    public CommentDto change(@PathVariable @NotNull
+                             @Positive Long userId, @PathVariable @NotNull
                              @Positive Long comId,
                              @RequestBody
                              @Valid UpdateCommentDto requestBody) {
@@ -59,11 +53,8 @@ public class PrivateCommentsController {
 
     @DeleteMapping("/{comId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable
-                       @NonNull
-                       @Positive Long userId,
-                       @PathVariable
-                       @NonNull
+    public void delete(@PathVariable @NotNull
+                       @Positive Long userId, @PathVariable @NotNull
                        @Positive Long comId) {
         log.info("==> Delete comment: user id {}, comment id {}", userId, comId);
         service.delete(userId, comId);

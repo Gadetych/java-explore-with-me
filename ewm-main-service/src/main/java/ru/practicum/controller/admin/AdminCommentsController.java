@@ -1,7 +1,7 @@
 package ru.practicum.controller.admin;
 
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -22,7 +22,7 @@ public class AdminCommentsController {
     @DeleteMapping("/{comId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable
-                       @NonNull
+                           @NotNull
                        @Positive Long comId) {
         log.info("==> Delete comment: id {}", comId);
         service.delete(comId);

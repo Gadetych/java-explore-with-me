@@ -335,12 +335,12 @@
         ]
       }
     },
-    "/comments/{eventId}": {
+    "/comments": {
       "get": {
         "parameters": [
           {
             "description": "id события по которому нужно получить комментарии",
-            "in": "path",
+            "in": "query",
             "name": "eventId",
             "required": true,
             "schema": {
