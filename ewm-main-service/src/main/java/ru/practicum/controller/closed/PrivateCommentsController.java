@@ -17,8 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.dto.comment.CommentDto;
-import ru.practicum.dto.comment.NewCommentDto;
-import ru.practicum.dto.comment.UpdateCommentDto;
+import ru.practicum.dto.comment.CommentResponseDto;
 import ru.practicum.service.CommentService;
 
 @RestController
@@ -31,22 +30,22 @@ public class PrivateCommentsController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public CommentDto create(@PathVariable @NotNull
+    public CommentResponseDto create(@PathVariable @NotNull
                              @Positive Long userId, @RequestParam("eventId") @NotNull
                              @Positive
                              Long eventId,
-                             @RequestBody
-                             @Valid NewCommentDto requestBody) {
+                                     @RequestBody
+                                     @Valid CommentDto requestBody) {
         log.info("==> Created new comment: user id {}, event id {}, request body {}", userId, eventId, requestBody);
         return service.create(userId, eventId, requestBody);
     }
 
     @PatchMapping("/{comId}")
-    public CommentDto change(@PathVariable @NotNull
+    public CommentResponseDto change(@PathVariable @NotNull
                              @Positive Long userId, @PathVariable @NotNull
                              @Positive Long comId,
-                             @RequestBody
-                             @Valid UpdateCommentDto requestBody) {
+                                     @RequestBody
+                                     @Valid CommentDto requestBody) {
         log.info("==> Change comment: user id {}, comment id {}, request body {}", userId, comId, requestBody);
         return service.change(userId, comId, requestBody);
     }

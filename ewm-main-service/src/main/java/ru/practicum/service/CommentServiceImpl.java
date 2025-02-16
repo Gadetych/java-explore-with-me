@@ -9,8 +9,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.comment.CommentDto;
-import ru.practicum.dto.comment.NewCommentDto;
-import ru.practicum.dto.comment.UpdateCommentDto;
+import ru.practicum.dto.comment.CommentResponseDto;
 import ru.practicum.enums.StateOfPublication;
 import ru.practicum.exception.conflict.PublicationEventException;
 import ru.practicum.exception.forbidden.AccessDeniedToCommentException;
@@ -37,7 +36,7 @@ public class CommentServiceImpl implements CommentService {
     //    Private
     @Transactional
     @Override
-    public CommentDto create(Long userId, Long eventId, NewCommentDto requestBody) {
+    public CommentResponseDto create(Long userId, Long eventId, CommentDto requestBody) {
         log.debug("==> Create comment for event: user: {} event: {}, request body: {}", userId, eventId, requestBody);
         User author = usersRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
         Event event = eventRepository.findById(eventId).orElseThrow(() -> new NotFoundException("Event not found"));
@@ -46,14 +45,14 @@ public class CommentServiceImpl implements CommentService {
         }
         Comment model = CommentMapper.dtoToMapper(author, event, requestBody);
         model = commentRepository.save(model);
-        CommentDto result = CommentMapper.modelToDto(model);
+        CommentResponseDto result = CommentMapper.modelToDto(model);
         log.debug("<== Created comment: {}", result);
         return result;
     }
 
     @Transactional
     @Override
-    public CommentDto change(Long userId, Long comId, UpdateCommentDto requestBody) {
+    public CommentResponseDto change(Long userId, Long comId, CommentDto requestBody) {
         log.debug("==> Change comment: user: {} comment id: {}, request body: {} ", userId, comId, requestBody);
         Comment model = commentRepository.findById(comId).orElseThrow(() -> new NotFoundException("Comment not found"));
         if (model.getAuthor().getId() != userId) {
@@ -61,7 +60,7 @@ public class CommentServiceImpl implements CommentService {
         }
         model.setText(requestBody.getText());
         model = commentRepository.save(model);
-        CommentDto result = CommentMapper.modelToDto(model);
+        CommentResponseDto result = CommentMapper.modelToDto(model);
         log.debug("<== Changed comment: {}", result);
         return result;
     }
@@ -88,7 +87,7 @@ public class CommentServiceImpl implements CommentService {
 
     //    Public
     @Override
-    public List<CommentDto> findAllByEventId(Long eventId, Integer from, Integer size) {
+    public List<CommentResponseDto> findAllByEventId(Long eventId, Integer from, Integer size) {
         log.debug("==> Find all comments by event id: {}", eventId);
         BooleanExpression predicate = QComment.comment.event.id.eq(eventId);
         Sort sort = Sort.by(Sort.Direction.ASC, "id");
@@ -97,7 +96,7 @@ public class CommentServiceImpl implements CommentService {
         if (models.isEmpty()) {
             return List.of();
         }
-        List<CommentDto> result = models.stream()
+        List<CommentResponseDto> result = models.stream()
                 .map(CommentMapper::modelToDto)
                 .toList();
         log.debug("<== Found all comments: {}", result);

@@ -157,7 +157,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateCommentDto"
+                "$ref": "#/components/schemas/CommentDto"
               }
             }
           },
@@ -534,7 +534,7 @@
         },
         "description": "Данные для добавления комментария"
       },
-      "UpdateCommentDto": {
+      "CommentDto": {
         "type": "object",
         "properties": {
           "text": {

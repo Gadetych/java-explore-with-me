@@ -1,24 +1,18 @@
 package ru.practicum.dto.comment;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.practicum.dto.event.EventTitleDto;
-import ru.practicum.dto.user.UserShortDto;
-
-import java.time.LocalDateTime;
+import org.hibernate.validator.constraints.Length;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 public class CommentDto {
-    private Long id;
+    @NotBlank
+    @Length(min = 5, max = 2000)
     private String text;
-    private UserShortDto author;
-    private EventTitleDto event;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime created;
 }
