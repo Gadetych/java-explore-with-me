@@ -81,3 +81,16 @@ CREATE TABLE IF NOT EXISTS requests
     CONSTRAINT fk_requester_id_requests FOREIGN KEY (requester_id) REFERENCES users (id),
     CONSTRAINT status_check CHECK (status IN ('PENDING', 'CONFIRMED', 'REJECTED', 'CANCELED'))
 );
+
+CREATE TABLE IF NOT EXISTS comments
+(
+    id        BIGINT GENERATED ALWAYS AS IDENTITY NOT NULL,
+    author_id BIGINT                              NOT NULL,
+    event_id  BIGINT                              NOT NULL,
+    text      VARCHAR(2000)                       NOT NULL,
+    created   TIMESTAMP                           NOT NULL,
+    CONSTRAINT pk_comments PRIMARY KEY (id),
+    CONSTRAINT fk_author_id_comments FOREIGN KEY (author_id) REFERENCES users (id),
+    CONSTRAINT fk_event_id_comments FOREIGN KEY (event_id) REFERENCES events (id),
+    CONSTRAINT min_length_text CHECK (LENGTH(text) >= 5)
+);
